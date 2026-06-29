@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Low Dose, Big Benefits Monitoring Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="logo64.js"></script>
+<!-- Usage analytics: GoatCounter (privacy-first, no cookies, no personal data). Replace YOURCODE with your GoatCounter site code. -->
+<script data-goatcounter="https://samnnorom.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>function track(p){try{if(window.goatcounter&&window.goatcounter.count){window.goatcounter.count({path:p,title:p,event:true});}}catch(e){}}</script>
+<style>
+  :root{
+    --purple:#5B2A86; --purple2:#7B2FBE; --pink:#E0218A; --teal:#00A99D;
+    --ink:#23202B; --muted:#736E80; --line:#ECE9F1; --bg:#F5F3F9; --card:#FFFFFF; --sidebar:#33184F; --track:#EBE4F3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:14px}
+  .sb{width:240px;background:var(--sidebar);color:#fff;flex-shrink:0;display:flex;flex-direction:column;padding:22px 14px}
+  .sb-brand{padding:4px 10px 20px}
+  .sb-logo{width:172px;height:auto;display:block;margin-bottom:14px}
+  .sb-brand .t{font-size:14px;font-weight:800;letter-spacing:.2px;color:#fff}
+  .sb-brand .s{font-size:11px;color:#C7B6DE;margin-top:2px}
+  .sb-cat{font-size:10.5px;letter-spacing:1.2px;color:#9C86BC;text-transform:uppercase;padding:14px 12px 6px}
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;cursor:pointer;
+    color:#E4DAF0;font-weight:600;font-size:13.5px;transition:.15s}
+  .nav-item:hover{background:rgba(255,255,255,.07)}
+  .nav-item.active{background:#fff;color:var(--purple)}
+  .nav-ic{width:18px;height:18px;flex-shrink:0}
+  .sb-spacer{flex:1}
+  .exp{display:flex;align-items:center;gap:9px;width:100%;border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.06);color:#EFE7F8;border-radius:9px;padding:10px 12px;cursor:pointer;
+    font-weight:600;font-size:13px;margin-top:6px;transition:.15s}
+  .exp:hover{background:rgba(255,255,255,.14)}
+  .sb-foot{padding:14px 12px 2px;font-size:10.5px;color:#9C86BC;line-height:1.6}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{background:var(--card);border-bottom:1px solid var(--line);padding:18px 30px;display:flex;
+    align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .top h1{font-size:21px;font-weight:800}
+  .top .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .controls{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field > label{font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:700;padding-left:2px;line-height:1}
+  .scope{display:inline-flex;height:44px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:0 4px}
+  .scope button{height:34px;border:0;background:transparent;padding:0 18px;border-radius:8px;cursor:pointer;
+    font-weight:700;font-size:13px;color:var(--muted);transition:.15s;white-space:nowrap;display:flex;align-items:center}
+  .scope button.active{background:var(--purple);color:#fff;box-shadow:0 2px 8px rgba(91,42,134,.25)}
+  .tm{font-size:.5em;vertical-align:super;position:relative;top:-.12em;font-weight:700;margin-left:1px;letter-spacing:.02em}
+  select{height:44px;appearance:none;-webkit-appearance:none;background:var(--card)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23736E80' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 12px center;
+    border:1px solid var(--line);border-radius:11px;padding:0 34px 0 14px;font-size:13px;font-weight:600;
+    color:var(--ink);cursor:pointer;min-width:150px}
+  select:focus{outline:2px solid var(--purple2);outline-offset:0}
+  .content{padding:26px 30px 40px;overflow-y:auto}
+  .scope-note{display:none;background:#F3EEFA;border:1px solid #E3D6F4;color:var(--purple);
+    border-radius:12px;padding:13px 18px;font-size:13px;font-weight:600;margin-bottom:22px}
+  .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:24px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 20px 18px;
+    box-shadow:0 1px 3px rgba(40,20,70,.04)}
+  .kpi .kl{font-size:11.5px;letter-spacing:.3px;color:var(--muted);font-weight:700;text-transform:uppercase;min-height:30px}
+  .kpi .kv{font-size:33px;font-weight:800;line-height:1.05;margin:8px 0 2px}
+  .kpi .kc{font-size:12px;color:var(--muted);margin-top:9px}
+  .gbar{display:flex;align-items:center;gap:9px;margin-top:13px}
+  .bar{flex:1;height:8px;background:var(--track);border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px;min-width:4px}
+  .gpct{font-size:12px;font-weight:800;color:var(--ink);min-width:34px;text-align:right}
+  .kpi.p .kv{color:var(--purple2)} .kpi.p .bar > i{background:var(--purple2)}
+  .kpi.k .kv{color:var(--pink)}    .kpi.k .bar > i{background:var(--pink)}
+  .kpi.t .kv{color:var(--teal)}    .kpi.t .bar > i{background:var(--teal)}
+  .row{display:grid;gap:18px;margin-bottom:24px}
+  .row.two{grid-template-columns:1fr 1fr}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;
+    box-shadow:0 1px 3px rgba(40,20,70,.04)}
+  .card h3{font-size:14px;font-weight:700;margin-bottom:4px}
+  .card .ch-sub{font-size:11.5px;color:var(--muted);margin-bottom:12px}
+  .wrap{position:relative;height:260px}
+  .wrap.tall{height:320px}
+  details.det{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:18px;
+    box-shadow:0 1px 3px rgba(40,20,70,.04);overflow:hidden}
+  details.det>summary{list-style:none;cursor:pointer;padding:16px 22px;font-weight:700;font-size:13.5px;
+    display:flex;align-items:center;justify-content:space-between;color:var(--purple)}
+  details.det>summary::-webkit-details-marker{display:none}
+  details.det>summary .chev{transition:.2s;color:var(--muted)}
+  details.det[open]>summary .chev{transform:rotate(180deg)}
+  .det-body{padding:4px 22px 22px}
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:700;text-align:left}
+  td{text-align:left}
+  th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr.tot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0;color:var(--ink)}
+  .tbl-title{font-size:12.5px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+  .det-note{font-size:11px;color:var(--muted);margin-top:14px;font-style:italic}
+  @media(max-width:1080px){.kgrid{grid-template-columns:repeat(2,1fr)}.row.two{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}}
+  @media print{
+    .sb{display:none} .controls{display:none} .top{border:0;padding:0 0 10px}
+    body{display:block} .content{padding:0;overflow:visible}
+    .card,.kpi,details.det{box-shadow:none;break-inside:avoid}
+    details.det[open] .det-body{display:block}
+    @page{size:landscape;margin:12mm}
+  }
+  /* Password gate (welcome screen) */
+  #gate{position:fixed;inset:0;z-index:99999;background:linear-gradient(145deg,#33184F,#5B2A86 60%,#7B2FBE);display:flex;align-items:center;justify-content:center;padding:20px}
+  #gate .gc{background:#fff;border-radius:20px;padding:38px 36px 34px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+  #gate img{width:148px;height:auto;margin-bottom:18px}
+  #gate h1{font-size:21px;font-weight:800;color:#5B2A86;margin-bottom:8px}
+  #gate p{font-size:13.5px;color:#736E80;margin-bottom:22px;line-height:1.55}
+  #gate input{width:100%;height:46px;border:1px solid #E0DAEA;border-radius:11px;padding:0 14px;font-size:15px;margin-bottom:12px;text-align:center;letter-spacing:.5px;font-family:inherit}
+  #gate input:focus{outline:2px solid #7B2FBE;border-color:#7B2FBE}
+  #gate button{width:100%;height:46px;border:0;border-radius:11px;background:#5B2A86;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s}
+  #gate button:hover{background:#7B2FBE}
+  #gate .err{color:#C62828;font-size:12.5px;margin-top:12px;min-height:16px;font-weight:600}
+  body.locked{overflow:hidden}
+</style>
+</head>
+<body>
+<div id="gate"><div class="gc">
+  <img id="gate-logo" alt="March of Dimes">
+  <h1>Welcome to the LDBB Dashboard</h1>
+  <p>This dashboard is password protected. Please enter the password to continue.</p>
+  <input type="password" id="gate-pw" placeholder="Enter password" autocomplete="off">
+  <button type="button" id="gate-btn">Enter</button>
+  <div class="err" id="gate-err"></div>
+</div></div>
+<script>
+(function(){
+  document.body.classList.add('locked');
+  var PWH=3463854999;
+  function djb2(s){var h=5381;for(var i=0;i<s.length;i++){h=((h*33)+s.charCodeAt(i))>>>0;}return h;}
+  var g=document.getElementById('gate'),pw=document.getElementById('gate-pw'),btn=document.getElementById('gate-btn'),err=document.getElementById('gate-err'),lg=document.getElementById('gate-logo');
+  if(window.MOD_LOGO64) lg.src=window.MOD_LOGO64;
+  function unlock(){g.style.display='none';document.body.classList.remove('locked');try{sessionStorage.setItem('ldbb_ok','1');}catch(e){}}
+  try{if(sessionStorage.getItem('ldbb_ok')==='1')unlock();}catch(e){}
+  function check(){if(djb2(pw.value)===PWH){err.textContent='';track('login');unlock();}else{err.textContent='Incorrect password. Please try again.';pw.value='';pw.focus();}}
+  btn.addEventListener('click',check);
+  pw.addEventListener('keydown',function(e){if(e.key==='Enter')check();});
+  if(g.style.display!=='none')pw.focus();
+})();
+</script>
+<aside class="sb">
+  <div class="sb-brand">
+    <img src="mod_logo.png" alt="March of Dimes" class="sb-logo">
+    <div class="t">Low Dose, Big Benefits&#8482;</div>
+    <div class="s">Monitoring Dashboard</div>
+  </div>
+  <div class="sb-cat">Categories</div>
+  <nav class="nav" id="nav"></nav>
+  <div class="sb-spacer"></div>
+  <div class="sb-cat">Export</div>
+  <button class="exp" onclick="exportPDF()"><svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export to PDF</button>
+  <button class="exp" onclick="exportXLSX()"><svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export to Excel</button>
+  <div class="sb-foot">March of Dimes, LDBB&#8482; Campaign<br>Reporting period: August 2025 to present</div>
+</aside>
+
+<div class="main">
+  <header class="top">
+    <div>
+      <h1 id="pg-title">Overview</h1>
+      <div class="sub" id="pg-sub"></div>
+    </div>
+    <div class="controls">
+      <div class="field"><label>Program</label>
+        <div class="scope" id="scope">
+          <button data-scope="ldbb">LDBB<sup class="tm">&#8482;</sup></button>
+          <button data-scope="hca">HCA Grant</button>
+        </div>
+      </div>
+      <div class="field" id="f-market" style="display:none">
+        <label>Market</label>
+        <select id="market">
+          <option value="all">All Markets</option>
+          <option value="miami">Florida (Miami)</option>
+          <option value="houston">Texas (Houston)</option>
+        </select>
+      </div>
+      <div class="field"><label>Quarter</label>
+        <select id="quarter">
+          <option value="all">All Quarters</option>
+          <option value="q3">Q3 2025</option>
+          <option value="q4">Q4 2025</option>
+          <option value="q1">Q1 2026</option>
+        </select>
+      </div>
+    </div>
+  </header>
+  <div class="content">
+    <div class="scope-note" id="scope-note"></div>
+    <div id="kpis" class="kgrid"></div>
+    <div id="charts"></div>
+    <div id="details"></div>
+  </div>
+</div>
+
+<script>
+// Data covers August 2025 to present, by quarter: Q3 2025, Q4 2025, Q1 2026.
+const LDBB = {
+  prof:{ compQ:{q3:99,q4:202,q1:130}, complRate:85, learnedNew:96, valuable:94, intentChange:80, avgGain:58, mastery:[19,63],
+    knowledge:[['Preeclampsia and PTB',98,100],['Screening and prescribing',45,84],['Mechanisms of LDA',32,74],['Supporting compliance',74,84]],
+    attitudes:[['Screen all for preeclampsia',95,98],['Comfortable discussing risks',43,84],['Comfortable discussing compliance',42,83]],
+    roles:[['Registered Nurse',69.4],['Other',8.2],['Community Health Worker',7.7],['Doula',4.4],['Advanced Practice Nurse',3.8],['Physician',2.9],['Certified Nurse Midwife',2.0]],
+    settings:[['Hospital (inpatient)',46.6],['Public Health / Community',25.0],['Other',21.7],['Private Practice',19.6],['Outpatient',15.5],['Academic Institution',4.5],['Home Health Care',2.8]],
+    states:[['Texas',232,22.4],['Florida',124,12.0],['Ohio',74,7.2],['California',56,5.4],['North Carolina',42,4.1]] },
+  cons:{ pvQ:{q3:39563,q4:57651,q1:28801}, dlQ:{q3:690,q4:734,q1:826}, spQ:{q3:1969,q4:1544,q1:1421},
+    learnedNew:91, easy:96, relevant:95, surveyN:616,
+    topics:[['Preeclampsia',296809],['High blood pressure',106897],['Blood clots',86273],['Gestational diabetes',26052],['Diabetes',5275],['LDBB article',2115]],
+    dls:[['Consumer risk checklist',3323],['Infographic',2124],['FAQs',1017]],
+    who:[['Pregnant or family member',44.1],['Health care provider or student',13.1],['Public health professional or student',8.0],['Interested member of public',7.2],['None of the above',6.4],['Community advocate',4.6]] },
+  aware:{ imprQ:{q3:57177,q4:75318,q1:571363}, reachQ:{q3:49336,q4:62310,q1:484822}, engQ:{q3:293,q4:314,q1:13344},
+    socImprQ:{q3:13340,q4:14201,q1:535774}, postsQ:{q3:49,q4:53,q1:247}, webPvQ:{q3:43837,q4:61117,q1:35589},
+    ldaLandQ:{q3:3400,q4:2600,q1:6562},
+    chanLabels:['Social Media (Organic)','Website (All LDA Pages)','Paid Digital','Out-of-Home'],
+    chanQ:{ q3:[13340,43837,0,0], q4:[14201,61117,0,0], q1:[535774,25000,7000,3589] } }
+};
+const HCA = {
+  goalPartners:125,
+  completions:{ miami:{q3:11,q4:18,q1:2}, houston:{q3:16,q4:38,q1:38} },
+  survey:{ all:{learnedNew:92,intentChange:83,valuable:100},
+           miami:{learnedNew:90,intentChange:81,valuable:94}, houston:{learnedNew:95,intentChange:82,valuable:95} },
+  materials:{ miami:{q3:350,q4:380,q1:2335}, houston:{q3:1632,q4:1600,q1:2140} },
+  consumers:{ miami:{q3:200,q4:117,q1:110}, houston:{q3:0,q4:335,q1:110} },
+  partners:[{period:'2025 Aug to Dec',pMI:16,pHOU:8,eMI:4,eHOU:1,q:['q3','q4']},
+            {period:'2026 Q1',pMI:1,pHOU:6,eMI:1,eHOU:3,q:['q1']}],
+  comm:[{period:'2025 Aug to Sep',bnMI:0,bnHOU:34,htnMI:0,htnHOU:0,q:['q3']},
+        {period:'2025 Q4',bnMI:160,bnHOU:253,htnMI:0,htnHOU:0,q:['q4']},
+        {period:'2026 Q1',bnMI:35,bnHOU:70,htnMI:25,htnHOU:120,q:['q1']}],
+  roleDemo:{ miami:[['OB/GYN',13,41.9],['RN / LPN',6,19.4],['NP / PA',5,16.1],['Midwife',3,9.7],['Other',4,12.9]],
+             houston:[['OB/GYN',26,28.3],['RN / LPN',28,30.4],['NP / PA',18,19.6],['Midwife',7,7.6],['Other',13,14.1]] }
+};
+
+const S = { page:'overview', scope:'ldbb', market:'all', quarter:'all' };
+const C = { purple:'#7B2FBE', pink:'#E0218A', teal:'#00A99D', purpleLt:'#C9B6E4' };
+const PAGES = { overview:{title:'Overview'}, prof:{title:'Professional Education'},
+  cons:{title:'Consumer Education'}, aware:{title:'Public Awareness'} };
+const ICON = {
+  overview:'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
+  prof:'M12 3L1 9l11 6 9-4.9V17h2V9L12 3zM5 13.2v3.3l7 3.8 7-3.8v-3.3l-7 3.8-7-3.8z',
+  cons:'M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z',
+  aware:'M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z'
+};
+const QL={q3:'Q3 2025',q4:'Q4 2025',q1:'Q1 2026'}, QA=['q3','q4','q1'];
+const fmt = n => typeof n==='number'? n.toLocaleString():n;
+const big = n => n>=1e6?(n/1e6).toFixed(n>=1e7?1:2).replace(/\.0$/,'')+'M':n>=1e3?Math.round(n/1e3)+'k':(''+n);
+const charts = {};
+function mk(id,cfg){ if(charts[id]){charts[id].destroy();} const el=document.getElementById(id); if(el) charts[id]=new Chart(el,cfg); }
+const QS = () => S.quarter==='all'?QA.slice():[S.quarter];
+const sumq = o => QS().reduce((s,q)=>s+(o[q]||0),0);
+const MK = () => S.market==='all'?['miami','houston']:[S.market];
+function sumMQ(obj){ let s=0; MK().forEach(m=>QS().forEach(q=>s+=(obj[m]&&obj[m][q])||0)); return s; }
+function partnersF(){ return HCA.partners.filter(p=>p.q.some(q=>QS().includes(q))); }
+function commF(){ return HCA.comm.filter(p=>p.q.some(q=>QS().includes(q))); }
+const hasMI=()=>S.market!=='houston', hasHOU=()=>S.market!=='miami';
+
+function kpi(cls,label,val,pctOrNull,cap){
+  const goal = pctOrNull==null ? '' :
+    `<div class="gbar"><div class="bar"><i style="width:${Math.max(2,Math.min(100,pctOrNull))}%"></i></div><span class="gpct">${Math.round(pctOrNull)}%</span></div>`;
+  return `<div class="kpi ${cls}"><div class="kl">${label}</div><div class="kv">${val}</div>${cap?`<div class="kc">${cap}</div>`:''}${goal}</div>`;
+}
+function card(id,title,sub,h,hero){ return `<div class="card${hero?' hero':''}"><h3>${title}</h3>${sub?`<div class="ch-sub">${sub}</div>`:''}<div class="wrap${h>290?' tall':''}" style="height:${h||260}px"><canvas id="${id}"></canvas></div></div>`; }
+function details(inner,note){ return `<details class="det"><summary>Show detailed metrics and tables<span class="chev">&#9662;</span></summary><div class="det-body">${inner}${note?`<div class="det-note">${note}</div>`:''}</div></details>`; }
+function tbl(title,head,rows,numCols){
+  const isN=i=> numCols? numCols.includes(i) : i>0;
+  return `<div><div class="tbl-title">${title}</div><table><thead><tr>${head.map((h,i)=>`<th${isN(i)?' class="n"':''}>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td${isN(i)?' class="n"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+const BASE={responsive:true,maintainAspectRatio:false};
+function prepost(id,labels,pre,post){
+  mk(id,{type:'bar',data:{labels,datasets:[
+    {label:'Pre',data:pre,backgroundColor:C.purpleLt,borderRadius:5,maxBarThickness:34},
+    {label:'Post',data:post,backgroundColor:C.purple,borderRadius:5,maxBarThickness:34}]},
+    options:{...BASE,plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y}%`}}},
+      scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:11}},grid:{color:'#F2EFF7'}},x:{ticks:{font:{size:10.5}},grid:{display:false}}}}});
+}
+function vbars(id,labels,data,color,kfmt){
+  mk(id,{type:'bar',data:{labels,datasets:[{data,backgroundColor:color,borderRadius:5,maxBarThickness:62}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>kfmt?big(v):v,font:{size:11}},grid:{color:'#F2EFF7'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
+}
+function qbars(id,qObj,color){ const qs=QS(); vbars(id,qs.map(q=>QL[q]),qs.map(q=>qObj[q]),color,true); }
+function groupedMQ(id,labels,miami,houston){
+  const ds=[]; if(hasMI())ds.push({label:'Miami',data:miami,backgroundColor:C.purple,borderRadius:5,maxBarThickness:46});
+  if(hasHOU())ds.push({label:'Houston',data:houston,backgroundColor:C.pink,borderRadius:5,maxBarThickness:46});
+  mk(id,{type:'bar',data:{labels,datasets:ds},options:{...BASE,plugins:{legend:{position:'top',labels:{boxWidth:12,font:{size:11}}}},
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1000?big(v):v,font:{size:11}},grid:{color:'#F2EFF7'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
+}
+function donut(id,pairs,colors){
+  mk(id,{type:'doughnut',data:{labels:pairs.map(p=>p[0]),datasets:[{data:pairs.map(p=>p[1]),backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{...BASE,cutout:'58%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.parsed)}`}}}}});
+}
+function areaLine(id,labels,series){
+  mk(id,{type:'line',data:{labels,datasets:series.map(s=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.fill,
+    fill:true,tension:.38,borderWidth:2.8,pointRadius:5,pointHoverRadius:7,pointBackgroundColor:s.color,pointBorderColor:'#fff',pointBorderWidth:2}))},
+    options:{...BASE,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true,pointStyle:'circle',font:{size:11.5}}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.y)}`}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>big(v),font:{size:11}},grid:{color:'#F2EFF7'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
+}
+function hbarPctNamed(id,pairs,colors){
+  mk(id,{type:'bar',data:{labels:pairs.map(p=>p[0]),datasets:[{data:pairs.map(p=>p[1]),backgroundColor:colors||C.purple,borderRadius:5,maxBarThickness:30}]},
+    options:{...BASE,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.parsed.x+'%'}}},
+      scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:11}},grid:{color:'#F2EFF7'}},y:{ticks:{font:{size:11}},grid:{display:false}}}}});
+}
+function donutCh(id,arr){
+  const cols=[C.purple,C.pink,C.teal,'#9E9E9E']; const L=[],D=[],K=[];
+  LDBB.aware.chanLabels.forEach((l,i)=>{ if(arr[i]>0){L.push(l);D.push(arr[i]);K.push(cols[i]);} });
+  const tot=D.reduce((a,b)=>a+b,0)||1;
+  mk(id,{type:'doughnut',data:{labels:L,datasets:[{data:D,backgroundColor:K,borderWidth:2,borderColor:'#fff'}]},
+    options:{...BASE,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.parsed)} (${Math.round(c.parsed/tot*100)}%)`}}}}});
+}
+const PAL=[C.purple,C.pink,C.teal,'#F5A623','#9E9E9E','#C9B6E4'];
+
+function render(){
+  const k=document.getElementById('kpis'), ch=document.getElementById('charts'), dt=document.getElementById('details');
+  k.innerHTML=ch.innerHTML=dt.innerHTML='';
+  const note=document.getElementById('scope-note'); note.style.display='none';
+  (R[S.page+'_'+S.scope]||R[S.page+'_ldbb'])(k,ch,dt,note);
+}
+const pctf = (a,b)=>Math.round(a/b*100);
+const R = {};
+
+R.overview_ldbb=(k,ch,dt)=>{
+  const comp=sumq(LDBB.prof.compQ), pv=sumq(LDBB.cons.pvQ), impr=sumq(LDBB.aware.imprQ);
+  k.innerHTML=
+    kpi('p','Professionals Educated',fmt(comp),null,'Module completers, August 2025 to present')+
+    kpi('k','Consumer Page Views',big(pv),null,'English-language LDA pages')+
+    kpi('t','Campaign Impressions',big(impr),null,'Across digital channels')+
+    kpi('p','Intent to Change Practice',LDBB.prof.intentChange+'%',LDBB.prof.intentChange,'Of learners, goal of 100%');
+  ch.innerHTML=
+    card('o1','Campaign reach momentum','Total impressions and unduplicated reach climbing sharply into Q1 2026',300,true)+
+    `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+(S.quarter==='all'?'August 2025 to present':QL[S.quarter]),270)}</div>`;
+  areaLine('o1',['Q3 2025','Q4 2025','Q1 2026'],[
+    {label:'Impressions',data:[57177,75318,571363],color:C.purple,fill:'rgba(123,47,190,.13)'},
+    {label:'Reach',data:[49336,62310,484822],color:C.pink,fill:'rgba(224,33,138,.11)'}]);
+  hbarPctNamed('o2',[['Learned something new',LDBB.prof.learnedNew],['Content valuable',LDBB.prof.valuable],['Intent to change practice',LDBB.prof.intentChange]],[C.purple,C.pink,C.teal]);
+  const agg=[0,0,0,0]; QS().forEach(q=>LDBB.aware.chanQ[q].forEach((v,i)=>agg[i]+=v)); donutCh('o3',agg);
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Program snapshot across all three pillars',['Pillar','Metric','Value'],[
+      ['Professional Education','Module completions',fmt(comp)],
+      ['','Learned something new',LDBB.prof.learnedNew+'%'],
+      ['Consumer Education','Page views',fmt(pv)],
+      ['','Learned something new',LDBB.cons.learnedNew+'%'],
+      ['Public Awareness','Total impressions',fmt(impr)],
+      ['','Engagements',fmt(sumq(LDBB.aware.engQ))]],[2])}
+    ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],QA.map(q=>[QL[q],fmt(LDBB.prof.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]))}
+    ${tbl('Top states by professionals educated',['State','n','%'],LDBB.prof.states.map(r=>[r[0],r[1],r[2]+'%']))}
+    ${tbl('Consumer survey quality',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']])}
+  </div>`,'Knowledge, attitude and demographic figures reflect all module completers to date.');
+};
+R.overview_hca=(k,ch,dt)=>{
+  const comp=sumMQ(HCA.completions), mats=sumMQ(HCA.materials), cons=sumMQ(HCA.consumers);
+  let pn=0; partnersF().forEach(p=>{if(hasMI())pn+=p.pMI; if(hasHOU())pn+=p.pHOU;});
+  const matGoal=4000*MK().length;
+  k.innerHTML=
+    kpi('p','Partners Completed Module',fmt(comp),pctf(comp,HCA.goalPartners),`of ${HCA.goalPartners}-partner Year 1 goal`)+
+    kpi('k','Materials Distributed',fmt(mats),Math.min(100,pctf(mats,matGoal)),`of ${fmt(matGoal)} goal, 4,000 per market`)+
+    kpi('t','Consumers Educated',fmt(cons),null,'Reached for further education')+
+    kpi('p','Community Partners',fmt(pn),null,'Organizations engaged');
+  const qs=QS();
+  ch.innerHTML=
+    card('h1','Grant delivery by market and quarter','Module completions across Florida (Miami) and Texas (Houston)',300,true)+
+    `<div class="row two">${card('h2','Materials distributed by market','Paper-based education items',270)}${card('h3','Consumers educated by market','Reached for education',270)}</div>`;
+  groupedMQ('h1',qs.map(q=>QL[q]),qs.map(q=>HCA.completions.miami[q]),qs.map(q=>HCA.completions.houston[q]));
+  groupedMQ('h2',qs.map(q=>QL[q]),qs.map(q=>HCA.materials.miami[q]),qs.map(q=>HCA.materials.houston[q]));
+  groupedMQ('h3',qs.map(q=>QL[q]),qs.map(q=>HCA.consumers.miami[q]),qs.map(q=>HCA.consumers.houston[q]));
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Grant scorecard versus Year 1 goals',['Metric','Result','Goal'],[
+      ['Partners completed module',fmt(comp),fmt(HCA.goalPartners)],
+      ['Materials distributed',fmt(mats),fmt(4000*MK().length)+' (4,000/mkt)'],
+      ['Consumers educated',fmt(cons),'Not set']],[1,2])}
+    ${tbl('Delivery by quarter (both markets)',['Quarter','Completions','Materials','Consumers'],qs.map(q=>[QL[q],
+      (hasMI()?HCA.completions.miami[q]:0)+(hasHOU()?HCA.completions.houston[q]:0),
+      fmt((hasMI()?HCA.materials.miami[q]:0)+(hasHOU()?HCA.materials.houston[q]:0)),
+      (hasMI()?HCA.consumers.miami[q]:0)+(hasHOU()?HCA.consumers.houston[q]:0)]))}
+  </div>`);
+};
+
+R.prof_ldbb=(k,ch,dt)=>{
+  const p=LDBB.prof;
+  k.innerHTML=
+    kpi('p','Module Completions',fmt(sumq(p.compQ)),p.complRate,'of enrollees complete the module')+
+    kpi('k','Learned Something New',p.learnedNew+'%',p.learnedNew,'Of learners, goal of 100%')+
+    kpi('t','Intent to Change Practice',p.intentChange+'%',p.intentChange,'Will change a practice')+
+    kpi('p','Average Score Gain','+'+p.avgGain+'%',p.avgGain,`Mastery rose from ${p.mastery[0]}% to ${p.mastery[1]}%`);
+  ch.innerHTML=`<div class="row two">${card('p1','Knowledge, percent answering correctly','Pre-test versus post-test',280)}${card('p2','Attitudes, percent who strongly agree','Pre-test versus post-test',280)}</div>`;
+  prepost('p1',p.knowledge.map(r=>r[0]),p.knowledge.map(r=>r[1]),p.knowledge.map(r=>r[2]));
+  prepost('p2',p.attitudes.map(r=>r[0]),p.attitudes.map(r=>r[1]),p.attitudes.map(r=>r[2]));
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Module completions by quarter',['Quarter','Completions'],QS().map(q=>[QL[q],fmt(p.compQ[q])]))}
+    ${tbl('Top states by completers',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']))}
+    ${tbl('Professional role (multi-select)',['Role','%'],p.roles.map(r=>[r[0],r[1]+'%']))}
+    ${tbl('Employment setting (multi-select)',['Setting','%'],p.settings.map(r=>[r[0],r[1]+'%']))}
+    ${tbl('Knowledge gains by question',['Question','Pre','Post'],p.knowledge.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
+    ${tbl('Attitude gains, strongly agree',['Statement','Pre','Post'],p.attitudes.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
+  </div>`,'Knowledge, attitude and demographic figures reflect all module completers to date.');
+};
+R.prof_hca=(k,ch,dt)=>{
+  const comp=sumMQ(HCA.completions);
+  const sv=HCA.survey[S.market==='all'?'all':S.market];
+  const fl=QS().reduce((s,q)=>s+HCA.completions.miami[q],0), tx=QS().reduce((s,q)=>s+HCA.completions.houston[q],0);
+  k.innerHTML=
+    kpi('p','Partners Completed Module',fmt(comp),pctf(comp,HCA.goalPartners),`of ${HCA.goalPartners}-partner goal`)+
+    kpi('k','Learned Something New',sv.learnedNew+'%',sv.learnedNew,'Of FL and TX learners')+
+    kpi('t','Intent to Change Practice',sv.intentChange+'%',sv.intentChange,'Of FL and TX learners')+
+    kpi('p','Content Valuable',sv.valuable+'%',sv.valuable,'Found the module valuable');
+  ch.innerHTML=`<div class="row two">${card('ph1','Completions by market and quarter','Florida (Miami) versus Texas (Houston)',280)}${card('ph2','Completions split, FL and TX','Selected quarters',280)}</div>`;
+  const qs=QS();
+  groupedMQ('ph1',qs.map(q=>QL[q]),qs.map(q=>HCA.completions.miami[q]),qs.map(q=>HCA.completions.houston[q]));
+  donut('ph2',[['Florida (Miami)',fl],['Texas (Houston)',tx]],[C.purple,C.pink]);
+  let roleRows='';
+  if(hasMI()) roleRows+=tbl('Role demographics, Florida (Miami)',['Role','n','%'],HCA.roleDemo.miami.map(r=>[r[0],r[1],r[2]+'%']));
+  if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']));
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Completions by market and quarter',['Quarter','Miami','Houston','Total'],qs.map(q=>[QL[q],HCA.completions.miami[q],HCA.completions.houston[q],HCA.completions.miami[q]+HCA.completions.houston[q]]))}
+    ${tbl('Outcomes by market',['Market','Learned new','Intent','Valuable'],[['Miami',HCA.survey.miami.learnedNew+'%',HCA.survey.miami.intentChange+'%',HCA.survey.miami.valuable+'%'],['Houston',HCA.survey.houston.learnedNew+'%',HCA.survey.houston.intentChange+'%',HCA.survey.houston.valuable+'%']],[1,2,3])}
+    ${roleRows}
+  </div>`);
+};
+
+R.cons_ldbb=(k,ch,dt)=>{
+  const c=LDBB.cons;
+  k.innerHTML=
+    kpi('p','Page Views',big(sumq(c.pvQ)),null,`Plus ${fmt(sumq(c.spQ))} Spanish-language`)+
+    kpi('k','Resource Downloads',fmt(sumq(c.dlQ)),null,'Risk checklist most downloaded')+
+    kpi('t','Learned Something New',c.learnedNew+'%',c.learnedNew,`Of ${fmt(c.surveyN)} survey responses`)+
+    kpi('p','Relevant to Needs',c.relevant+'%',c.relevant,'Survey respondents, goal of 100%');
+  ch.innerHTML=`<div class="row two">${card('c1','Page views by quarter','English consumer education pages',280)}${card('c2','Page views by topic','Share of total views',280)}</div>`;
+  qbars('c1',c.pvQ,C.purple); donut('c2',c.topics,PAL);
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Page views and downloads by quarter',['Quarter','Page views','Downloads'],QS().map(q=>[QL[q],fmt(c.pvQ[q]),fmt(c.dlQ[q])]))}
+    ${tbl('Page views by topic',['Topic','Views'],c.topics.map(r=>[r[0],fmt(r[1])]))}
+    ${tbl('Who visits (multi-select)',['Audience','%'],c.who.map(r=>[r[0],r[1]+'%']))}
+    ${tbl('Resource downloads',['Resource','Downloads'],c.dls.map(r=>[r[0],fmt(r[1])]))}
+    ${tbl('English and Spanish page views',['Quarter','English','Spanish'],QS().map(q=>[QL[q],fmt(c.pvQ[q]),fmt(c.spQ[q])]))}
+    ${tbl('Survey quality',['Measure','%'],[['Learned something new',c.learnedNew+'%'],['Easy to understand',c.easy+'%'],['Relevant to needs',c.relevant+'%']])}
+  </div>`,'Topic mix and audience reflect distribution across the reporting period.');
+};
+R.cons_hca=(k,ch,dt)=>{
+  const mats=sumMQ(HCA.materials), cons=sumMQ(HCA.consumers);
+  let pn=0,ev=0; partnersF().forEach(p=>{if(hasMI()){pn+=p.pMI;ev+=p.eMI;} if(hasHOU()){pn+=p.pHOU;ev+=p.eHOU;}});
+  const matGoal=4000*MK().length;
+  k.innerHTML=
+    kpi('p','Materials Distributed',fmt(mats),Math.min(100,pctf(mats,matGoal)),`of ${fmt(matGoal)} goal, 4,000 per market`)+
+    kpi('k','Consumers Educated',fmt(cons),null,'Reached for education')+
+    kpi('t','Community Partners',fmt(pn),null,'Organizations engaged')+
+    kpi('p','Community Events',fmt(ev),null,'Activations attended');
+  ch.innerHTML=`<div class="row two">${card('cc1','Materials distributed by market','Paper-based items',280)}${card('cc2','Consumers educated by market','Reached for education',280)}</div>`;
+  const qs=QS();
+  groupedMQ('cc1',qs.map(q=>QL[q]),qs.map(q=>HCA.materials.miami[q]),qs.map(q=>HCA.materials.houston[q]));
+  groupedMQ('cc2',qs.map(q=>QL[q]),qs.map(q=>HCA.consumers.miami[q]),qs.map(q=>HCA.consumers.houston[q]));
+  const cd=commF(); let bnMI=0,bnHOU=0,htMI=0,htHOU=0; cd.forEach(p=>{bnMI+=p.bnMI;bnHOU+=p.bnHOU;htMI+=p.htnMI;htHOU+=p.htnHOU;});
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Materials and consumers by quarter',['Quarter','Materials','Consumers'],qs.map(q=>[QL[q],
+      fmt((hasMI()?HCA.materials.miami[q]:0)+(hasHOU()?HCA.materials.houston[q]:0)),
+      (hasMI()?HCA.consumers.miami[q]:0)+(hasHOU()?HCA.consumers.houston[q]:0)]))}
+    ${tbl('Community distribution (selected quarters)',['Item','Miami','Houston'],[['Basic-needs bags',hasMI()?bnMI:'n/a',hasHOU()?bnHOU:'n/a'],['Hypertension kits',hasMI()?htMI:'n/a',hasHOU()?htHOU:'n/a']])}
+    ${tbl('Partners and events by period',['Period','Partners','Events'],partnersF().map(p=>[p.period,(hasMI()?p.pMI:0)+(hasHOU()?p.pHOU:0),(hasMI()?p.eMI:0)+(hasHOU()?p.eHOU:0)]))}
+  </div>`);
+};
+
+function awareView(k,ch,dt){
+  const a=LDBB.aware, qs=QS();
+  k.innerHTML=
+    kpi('p','Total Impressions',big(sumq(a.imprQ)),null,'Digital channels')+
+    kpi('k','Reach',big(sumq(a.reachQ)),null,'Unduplicated audience')+
+    kpi('t','Engagements',fmt(sumq(a.engQ)),null,'Likes, shares, clicks')+
+    kpi('p','Social Posts',fmt(sumq(a.postsQ)),null,'Organic posts published');
+  const qlbl = S.quarter==='all'?'August 2025 to present':QL[S.quarter];
+  ch.innerHTML=`<div class="row two">${card('a1','Impressions and reach over time','Q3 2025 to Q1 2026. Click a legend item to toggle a series.',300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`;
+  areaLine('a1',['Q3 2025','Q4 2025','Q1 2026'],[
+    {label:'Impressions',data:[a.imprQ.q3,a.imprQ.q4,a.imprQ.q1],color:C.purple,fill:'rgba(123,47,190,.13)'},
+    {label:'Reach',data:[a.reachQ.q3,a.reachQ.q4,a.reachQ.q1],color:C.pink,fill:'rgba(224,33,138,.11)'},
+    {label:'Engagements',data:[a.engQ.q3,a.engQ.q4,a.engQ.q1],color:C.teal,fill:'rgba(0,169,157,.12)'}]);
+  const agg=[0,0,0,0]; qs.forEach(q=>a.chanQ[q].forEach((v,i)=>agg[i]+=v)); donutCh('a2',agg);
+  dt.innerHTML=details(`<div class="dgrid">
+    ${tbl('Impressions, reach and engagements by quarter',['Quarter','Impressions','Reach','Engagements'],QA.map(q=>[QL[q],fmt(a.imprQ[q]),fmt(a.reachQ[q]),fmt(a.engQ[q])]))}
+    ${tbl('Channel breakdown by quarter (impressions)',['Quarter','Social','Website','Paid','OOH'],QA.map(q=>[QL[q],fmt(a.chanQ[q][0]),fmt(a.chanQ[q][1]),fmt(a.chanQ[q][2]),fmt(a.chanQ[q][3])]))}
+    ${tbl('Organic social media by quarter',['Quarter','Posts','Impressions'],QA.map(q=>[QL[q],fmt(a.postsQ[q]),fmt(a.socImprQ[q])]))}
+    ${tbl('Website LDA pages by quarter',['Quarter','Page views','LDA landing'],QA.map(q=>[QL[q],fmt(a.webPvQ[q]),fmt(a.ldaLandQ[q])]))}
+  </div>`);
+}
+R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
+R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
+  note.innerHTML='Public Awareness runs as a single national LDBB&#8482; campaign and is not split by market. The figures below are program-wide, shown by quarter.';
+  awareView(k,ch,dt); };
+
+// ── EXPORT ──
+function exportPDF(){
+  track('export-pdf');
+  const d=document.querySelector('#details details'); const was=d?d.open:null; if(d)d.open=true;
+  setTimeout(()=>{ window.print(); if(d&&was===false)setTimeout(()=>{d.open=false;},300); },200);
+}
+async function exportXLSX(){
+  if(typeof ExcelJS==='undefined'){ alert('The export library is still loading. Please try again in a moment.'); return; }
+  track('export-excel');
+  const scopeLbl = S.scope==='hca'?'HCA Grant':'LDBB';
+  const P='FF5B2A86', PL='FFF1ECF8', INK='FF23202B', MUT='FF736E80', LINE='FFE7E1F0';
+  const wb=new ExcelJS.Workbook(); wb.creator='March of Dimes'; wb.created=new Date();
+  const ws=wb.addWorksheet(PAGES[S.page].title.slice(0,28),{views:[{showGridLines:false}]});
+  ws.columns=[{width:46},{width:18},{width:18},{width:18}];
+  ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.4,right:0.4,top:0.5,bottom:0.4,header:0.2,footer:0.2}};
+  let r=1;
+  if(window.MOD_LOGO64){ const id=wb.addImage({base64:window.MOD_LOGO64,extension:'png'}); ws.addImage(id,{tl:{col:0.12,row:0.15},ext:{width:148,height:96}}); }
+  ws.getRow(1).height=30; ws.getRow(2).height=20; ws.getRow(3).height=18; ws.getRow(4).height=10; ws.getRow(5).height=10;
+  const put=(addr,val,opt={})=>{ const c=ws.getCell(addr); c.value=val;
+    c.font={name:'Calibri',size:opt.size||11,bold:!!opt.bold,italic:!!opt.italic,color:{argb:opt.color||INK}};
+    c.alignment={vertical:'middle',horizontal:opt.align||'left',indent:opt.indent||0}; return c; };
+  ws.mergeCells('B1:D1'); put('B1','Low Dose, Big Benefits (TM)',{size:17,bold:true,color:P});
+  ws.mergeCells('B2:D2'); put('B2','March of Dimes  |  HCA Foundation Monitoring Dashboard',{size:11,color:MUT});
+  ws.mergeCells('B3:D3'); put('B3',PAGES[S.page].title+'   |   '+scopeLbl+'   |   '+document.getElementById('pg-sub').textContent,{size:10,italic:true,color:MUT});
+  r=6;
+  const section=t=>{ ws.mergeCells(`A${r}:D${r}`); const c=put('A'+r,t,{size:11.5,bold:true,color:'FFFFFFFF',indent:1});
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:P}}; ws.getRow(r).height=22; r++; };
+  const headRow=cols=>{ cols.forEach((h,i)=>{ const c=ws.getCell(r,i+1); c.value=h;
+    c.font={name:'Calibri',size:10,bold:true,color:{argb:P}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:PL}};
+    c.alignment={vertical:'middle',horizontal:i===0?'left':'right',indent:i===0?1:0};
+    c.border={bottom:{style:'thin',color:{argb:LINE}}}; }); ws.getRow(r).height=18; r++; };
+  const dataR=cols=>{ cols.forEach((v,i)=>{ const c=ws.getCell(r,i+1); c.value=v;
+    c.font={name:'Calibri',size:10,color:{argb:INK}};
+    c.alignment={vertical:'middle',horizontal:i===0?'left':'right',indent:i===0?1:0};
+    c.border={bottom:{style:'hair',color:{argb:'FFEDE9F1'}}}; }); ws.getRow(r).height=16; r++; };
+  // KPIs
+  section('Key Performance Indicators');
+  headRow(['Metric','Value']);
+  document.querySelectorAll('#kpis .kpi').forEach(kp=>{
+    const lab=kp.querySelector('.kl').textContent.trim(), val=kp.querySelector('.kv').textContent.trim();
+    const pc=kp.querySelector('.gpct'); dataR(pc?[lab,val+'  ('+pc.textContent.trim()+' of goal)']:[lab,val]); });
+  r++;
+  // Detail tables
+  document.querySelectorAll('#details table').forEach(t=>{
+    const title=t.parentElement.querySelector('.tbl-title');
+    section(title?title.textContent.trim():'Detail');
+    headRow([...t.querySelectorAll('thead th')].map(th=>th.textContent.trim()));
+    t.querySelectorAll('tbody tr').forEach(tr=>dataR([...tr.children].map(c=>c.textContent.trim())));
+    r++;
+  });
+  ws.mergeCells(`A${r}:D${r}`); put('A'+r,'Generated '+new Date().toLocaleString()+'.  Reporting period: August 2025 to present.',{size:9,italic:true,color:MUT});
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='LDBB_'+scopeLbl.replace(' ','')+'_'+PAGES[S.page].title.replace(/ /g,'')+'.xlsx';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
+// ── WIRING ──
+function buildNav(){
+  document.getElementById('nav').innerHTML=Object.keys(PAGES).map(p=>
+    `<div class="nav-item${p===S.page?' active':''}" data-pg="${p}">
+      <svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="${ICON[p]}"/></svg>${PAGES[p].title}</div>`).join('');
+  document.querySelectorAll('.nav-item').forEach(el=>el.onclick=()=>{S.page=el.dataset.pg;refresh();});
+}
+function refresh(){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.pg===S.page));
+  document.querySelectorAll('#scope button').forEach(b=>b.classList.toggle('active',b.dataset.scope===S.scope));
+  document.getElementById('pg-title').textContent=PAGES[S.page].title;
+  const hca=S.scope==='hca';
+  document.getElementById('f-market').style.display=(hca&&S.page!=='aware')?'flex':'none';
+  const ml={all:'all Florida and Texas markets',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
+  const qf=S.quarter==='all'?'August 2025 to present':QL[S.quarter];
+  document.getElementById('pg-sub').textContent = hca
+    ? (S.page==='aware'?'National LDBB campaign, '+qf:'HCA Grant, '+ml+', '+qf)
+    : 'LDBB national campaign, '+qf;
+  render();
+}
+document.querySelectorAll('#scope button').forEach(b=>b.onclick=()=>{S.scope=b.dataset.scope; if(b.dataset.scope==='ldbb')S.market='all'; refresh();});
+document.getElementById('market').onchange=e=>{S.market=e.target.value;refresh();};
+document.getElementById('quarter').onchange=e=>{S.quarter=e.target.value;refresh();};
+buildNav(); refresh();
+</script>
+</body>
+</html>
