@@ -154,8 +154,8 @@
 <div id="gate"><div class="gc">
   <img id="gate-logo" alt="March of Dimes">
   <h1>Welcome to the LDBB Dashboard</h1>
-  <p>Please enter the access code to continue. This is a light access step, not a security control; all figures shown are aggregate and publication-safe.</p>
-  <input type="password" id="gate-pw" placeholder="Enter access code" autocomplete="off">
+  <p>This dashboard is password protected. Please enter the password to continue.</p>
+  <input type="password" id="gate-pw" placeholder="Enter password" autocomplete="off">
   <button type="button" id="gate-btn">Enter</button>
   <div class="err" id="gate-err"></div>
 </div></div>
@@ -168,7 +168,7 @@
   if(window.MOD_LOGO64) lg.src=window.MOD_LOGO64;
   function unlock(){g.style.display='none';document.body.classList.remove('locked');try{sessionStorage.setItem('ldbb_ok','1');}catch(e){}}
   try{if(sessionStorage.getItem('ldbb_ok')==='1')unlock();}catch(e){}
-  function check(){if(djb2(pw.value)===PWH){err.textContent='';track('login');unlock();}else{err.textContent='Incorrect password. Please try again.';pw.value='';pw.focus();}}
+  function check(){if(djb2(pw.value)===PWH){err.textContent='';track('login');unlock();}else{err.textContent='Incorrect password.';pw.value='';pw.focus();}}
   btn.addEventListener('click',check);
   pw.addEventListener('keydown',function(e){if(e.key==='Enter')check();});
   if(g.style.display!=='none')pw.focus();
@@ -352,7 +352,7 @@ function kpi(cls,label,val,pctOrNull,cap){
   return `<div class="kpi ${cls}"><div class="kl">${label}</div><div class="kv">${val}</div>${cap?`<div class="kc">${cap}</div>`:''}${goal}</div>`;
 }
 function card(id,title,sub,h,hero){ return `<div class="card${hero?' hero':''}"><h3>${title}</h3>${sub?`<div class="ch-sub">${sub}</div>`:''}<div class="wrap${h>290?' tall':''}" style="height:${h||260}px"><canvas id="${id}" role="img" aria-label="${title}${sub?', '+sub:''}. Full values in the data tables below."></canvas></div></div>`; }
-function details(inner,note){ return `<details class="det" aria-label="Accessible data tables"><summary>Show detailed metrics and tables (accessible view)<span class="chev">&#9662;</span></summary><div class="det-body">${inner}${note?`<div class="det-note">${note}</div>`:''}</div></details>`; }
+function details(inner,note){ return `<details class="det" aria-label="Data tables"><summary>View details<span class="chev">&#9662;</span></summary><div class="det-body">${inner}${note?`<div class="det-note">${note}</div>`:''}</div></details>`; }
 function tbl(title,head,rows,numCols){
   const isN=i=> numCols? numCols.includes(i) : i>0;
   return `<div><div class="tbl-title">${title}</div><div class="tbl-wrap"><table><thead><tr>${head.map((h,i)=>`<th${isN(i)?' class="n"':''}>${h}</th>`).join('')}</tr></thead>
@@ -406,8 +406,16 @@ function donut(id,pairs,colors){
     options:{...BASE,cutout:'58%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.parsed)}`}}}}});
 }
 function areaLine(id,labels,series){
+  // Highlight the selected quarter's point when a single quarter is filtered (trend charts always show all quarters for context).
+  const hi = S.quarter==='all' ? -1 : QA.indexOf(S.quarter);
+  const prad = hi<0 ? 5 : labels.map((_,idx)=> idx===hi?8.5:3);
+  const phov = hi<0 ? 7 : labels.map((_,idx)=> idx===hi?10:5);
   mk(id,{type:'line',data:{labels,datasets:series.map((s,i)=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.fill,
-    fill:true,tension:.38,borderWidth:2.8,borderDash:i?[6,4]:[],pointStyle:SHAPES[i%3],pointRadius:5,pointHoverRadius:7,pointBackgroundColor:s.color,pointBorderColor:'#fff',pointBorderWidth:2}))},
+    fill:true,tension:.38,borderWidth:2.8,borderDash:i?[6,4]:[],pointStyle:SHAPES[i%3],
+    pointRadius:prad,pointHoverRadius:phov,
+    pointBackgroundColor: hi<0 ? s.color : labels.map((_,idx)=> idx===hi ? s.color : '#fff'),
+    pointBorderColor: hi<0 ? '#fff' : labels.map((_,idx)=> idx===hi ? '#fff' : s.color),
+    pointBorderWidth:2}))},
     options:{...BASE,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true,font:{size:11.5}}},
         tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.y)}`}}},
@@ -447,7 +455,7 @@ R.overview_ldbb=(k,ch,dt)=>{
     kpi('t','Campaign Impressions',big(impr),null,'LDA analytics across channels')+
     kpi('p','Intent to Change Practice',p.intentChange+'%',p.intentChange,'Of learners, goal of 100%');
   ch.innerHTML=
-    card('o1','Campaign reach momentum','Total impressions and unduplicated reach by quarter',300,true)+
+    card('o1','Campaign reach momentum','Total impressions and unduplicated reach by quarter'+(S.quarter==='all'?'':' · '+QL[S.quarter]+' highlighted'),300,true)+
     `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+(S.quarter==='all'?'Aug 2025 to present':QL[S.quarter]),270)}</div>`;
   areaLine('o1',QA.map(q=>QL[q]),[
     {label:'Impressions',data:QA.map(q=>LDBB.aware.imprQ[q]??null),color:C.purple,fill:'rgba(123,47,190,.13)'},
@@ -455,7 +463,7 @@ R.overview_ldbb=(k,ch,dt)=>{
   hbarPctNamed('o2',[['Learned something new',p.learnedNew],['Content valuable',p.valuable],['Intent to change practice',p.intentChange]],[C.purple,C.pink,C.teal]);
   const agg=[0,0,0,0]; QS().forEach(q=>{ if(LDBB.aware.chanQ[q]) LDBB.aware.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('o3',agg);
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Program snapshot across all three pillars',['Pillar','Metric','Value'],[
+    ${tbl('Program snapshot',['Pillar','Metric','Value'],[
       ['Professional Education','Module completions (Aug 2025+)',fmt(comp)],
       ['','Program to date',fmt(p.progToDate)],
       ['','Learned something new',p.learnedNew+'%'],
@@ -466,7 +474,7 @@ R.overview_ldbb=(k,ch,dt)=>{
     ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],QA.map(q=>[QL[q],fmt(p.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]))}
     ${tbl('Top states by professionals educated',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']))}
     ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']])}
-  </div>`,'Q2 2026 awareness and consumer page-view detail is pending from the marketing team; completions and survey data are current through Q2 2026.');
+  </div>`,'Q2 2026 awareness and page-view data pending. Other metrics current through Q2 2026.');
 };
 R.overview_hca=(k,ch,dt)=>{
   const mk=MK();
@@ -486,7 +494,7 @@ R.overview_hca=(k,ch,dt)=>{
   const qs=QS();
   ch.innerHTML=
     card('h1','Individuals served by market and quarter','Consumers educated plus basic-need bags distributed',300,true)+
-    `<div class="row two">${card('h2','eLearning completions by market','Florida (Miami) versus Texas (Houston)',270)}${card('h3','Awareness reach momentum','Impressions and unique reach by quarter',270)}</div>`;
+    `<div class="row two">${card('h2','eLearning completions by market','Florida (Miami) versus Texas (Houston)',270)}${card('h3','Awareness reach momentum','Impressions and unique reach by quarter'+(S.quarter==='all'?'':' · '+QL[S.quarter]+' highlighted'),270)}</div>`;
   groupedMQ('h1',qs.map(q=>QL[q]),qs.map(q=>servedQ('miami',q)),qs.map(q=>servedQ('houston',q)));
   groupedMQ('h2',qs.map(q=>QL[q]),qs.map(q=>HCA.completions.miami[q]),qs.map(q=>HCA.completions.houston[q]));
   areaLine('h3',QA.map(q=>QL[q]),[
@@ -500,14 +508,14 @@ R.overview_hca=(k,ch,dt)=>{
   if(hasMI()) HCA.partnerNames.miami.forEach(n=>pnRows.push([n,`${HCA.regions.miami} (Miami, FL)`]));
   if(hasHOU()) HCA.partnerNames.houston.forEach(n=>pnRows.push([n,`${HCA.regions.houston} (Houston, TX)`]));
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Geographic reach (end-of-year report)',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3])}
-    ${tbl('Awareness campaign metrics (as reported to HCA, goal 15M impressions)',['Metric','Total'],[
+    ${tbl('Geographic reach',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3])}
+    ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Total'],[
       ['# Impressions',fmt(rep.impr)],['# Engagements',fmt(rep.eng)],['# Reach (unique people)',fmt(rep.reach)],['# Earned media reach',fmt(rep.earned)+'+']],[1])}
     ${tbl('Named external partners',['Partner','Region'],pnRows)}
     ${tbl('Program outcome metrics (served and achieved)',['Outcome','Served','Achieved'],[
       ['Consumer learners, learned something new (WISE pop-up)',fmt(consN),fmt(consAch)+` (${HCA.consLearnedNew}%)`],
       ['Provider learners, learned something new (eLearning)',fmt(comp),fmt(provAch)+` (${HCA.survey.all.learnedNew}%)`],
-      ['Individuals provided resources (bags, kits, food, diapers)',fmt(kits),fmt(kits)],
+      ['Individuals provided resources',fmt(kits),fmt(kits)],
       ['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI':HCA.screenFirstVisit+'%',HCA.screenFirstVisit==null?'Pending QI':'']],[1,2])}
     ${tbl('Grant scorecard versus Year 1 goals',['Metric','Result','Goal'],[
       ['Individuals served',fmt(served),fmt(HCA.goalReach)],
@@ -518,7 +526,7 @@ R.overview_hca=(k,ch,dt)=>{
       ['Total award','$'+fmt(HCA.award.total)],
       ['Payment schedule','3 payments of $'+fmt(HCA.award.each)],
       ['Payment dates',HCA.award.payments.join(', ')]])}
-  </div>`,'Individuals Served = consumers educated plus basic-need bags (reproduces the mid-year Miami 517 and Houston 287). HCA regions: East Florida (Miami) and Gulf Coast (Houston). Awareness figures are program-wide, supplied by the marketing team, as submitted to HCA. Served and achieved counts follow the year-end report structure (served is greater than or equal to achieved).');
+  </div>`,'Individuals Served = consumers educated + basic-need bags. Awareness figures are program-wide, as reported to HCA.');
 };
 
 R.prof_ldbb=(k,ch,dt)=>{
@@ -543,7 +551,7 @@ R.prof_ldbb=(k,ch,dt)=>{
     ${tbl('Employment setting (multi-select)',['Setting','%'],p.settings.map(r=>[r[0],r[1]+'%']))}
     ${tbl('Knowledge gains by question',['Question','Pre','Post'],p.knowledge.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
     ${tbl('Attitude gains, strongly agree',['Statement','Pre','Post'],p.attitudes.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
-  </div>`,'Completions are from the LDA and NFS progress reports (through 6/25/2026). Knowledge, attitude and demographic figures reflect module completers to date.');
+  </div>`,'Completions from LDA and NFS progress reports through 6/25/2026.');
 };
 R.prof_hca=(k,ch,dt)=>{
   const comp=sumMQ(HCA.completions);
@@ -563,29 +571,33 @@ R.prof_hca=(k,ch,dt)=>{
   if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']));
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Completions by market and quarter',['Quarter','Miami','Houston','Total'],qs.map(q=>[QL[q],HCA.completions.miami[q],HCA.completions.houston[q],HCA.completions.miami[q]+HCA.completions.houston[q]]))}
-    ${tbl('Professionals reached via market activities (presentations and office hours, not LMS completions)',['Quarter','Miami','Houston','Total'],qs.filter(q=>q==='q1'||q==='q2').map(q=>[QL[q]+(q==='q2'?' (prelim)':''),fmt(HCA.profEdMkt.miami[q]||0),fmt(HCA.profEdMkt.houston[q]||0),(HCA.profEdMkt.miami[q]||0)+(HCA.profEdMkt.houston[q]||0)]),[1,2,3])}
+    ${tbl('Professionals reached via market activities',['Quarter','Miami','Houston','Total'],qs.filter(q=>q==='q1'||q==='q2').map(q=>[QL[q]+(q==='q2'?' (prelim)':''),fmt(HCA.profEdMkt.miami[q]||0),fmt(HCA.profEdMkt.houston[q]||0),(HCA.profEdMkt.miami[q]||0)+(HCA.profEdMkt.houston[q]||0)]),[1,2,3])}
     ${tbl('Provider education outcomes (FL and TX learners)',['Measure','%'],[['Learned something new',HCA.survey.all.learnedNew+'%'],['Intend to change a practice',HCA.survey.all.intentChange+'%'],['Content was valuable',HCA.survey.all.valuable+'%']])}
-    ${tbl('Clinical QI outcome (end-of-year report)',['Outcome','Value'],[['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI protocol data':HCA.screenFirstVisit+'%']],[1])}
+    ${tbl('Clinical QI outcome',['Outcome','Value'],[['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI protocol data':HCA.screenFirstVisit+'%']],[1])}
     ${tbl('Completions by learner state (validation only)',['Quarter','Florida','Texas'],QS().map(q=>[QL[q],fmt(HCA.stateVal.fl[q]),fmt(HCA.stateVal.tx[q])]))}
     ${roleRows}
-  </div>`,'Official grant completions (Miami/Houston) are shown above. The learner-state counts are broader (state of residence from the LMS) and are for validation only, not grant reporting. The first-prenatal-visit screening rate is from the site QI protocol, reported at end of year.');
+  </div>`,'Grant completions are Miami and Houston. Learner-state counts are for validation only, not grant reporting.');
 };
 
 R.cons_ldbb=(k,ch,dt)=>{
   const c=LDBB.cons, qs=QS();
+  // WISE outcomes: react to a single-quarter selection when quarterly data exists; otherwise show pooled YTD.
+  const wq = S.quarter!=='all' && c.wiseEN[S.quarter] ? c.wiseEN[S.quarter] : null;
+  const wLn = wq? wq.ln : c.learnedNew, wEa = wq? wq.ea : c.easy, wRe = wq? wq.re : c.relevant, wN = wq? wq.n : c.surveyN;
+  const wsub = wq ? QL[S.quarter]+' · N='+fmt(wN) : 'Aug 2025 to present · pooled';
   k.innerHTML=
     kpi('p','Page Views',big(sumq(c.pvQ)),null,`Plus ${fmt(sumq(c.spQ))} Spanish-language`)+
     kpi('k','Resource Downloads',fmt(sumq(c.dlQ)),null,'Risk checklist most downloaded')+
-    kpi('t','Learned Something New',c.learnedNew+'%',c.learnedNew,`Of ${fmt(c.surveyN)} survey responses`)+
-    kpi('p','Relevant to Needs',c.relevant+'%',c.relevant,'Survey respondents, goal of 100%');
+    kpi('t','Learned Something New',wLn+'%',wLn,`Of ${fmt(wN)} responses${wq?' ('+QL[S.quarter]+')':''}`)+
+    kpi('p','Relevant to Needs',wRe+'%',wRe,`Survey respondents${wq?' ('+QL[S.quarter]+')':', goal of 100%'}`);
   ch.innerHTML=`<div class="row two">${card('c1','Page views, English vs Spanish','Consumer education pages by quarter',280)}${card('c2','Page views by topic','Share of total views',280)}</div>`+
-    `<div class="row two">${card('c3','WISE learned-something-new trend','English vs Spanish, by quarter',260)}${card('c4','WISE pop-up outcomes (English)','Percent of respondents who agreed',260)}</div>`;
+    `<div class="row two">${card('c3','WISE learned-something-new trend','English vs Spanish, by quarter',260)}${card('c4','WISE pop-up outcomes (English)','Percent of respondents who agreed · '+wsub,260)}</div>`;
   grouped2('c1',qs.map(q=>QL[q]),qs.map(q=>c.pvQ[q]),qs.map(q=>c.spQ[q]),'English','Spanish',C.purple,C.teal);
   donut('c2',c.topics,PAL);
   lineMulti('c3',qs.map(q=>QL[q]),[
     {label:'English',data:qs.map(q=>c.wiseEN[q]?c.wiseEN[q].ln:null),color:C.purple},
     {label:'Spanish',data:qs.map(q=>c.wiseES[q]?c.wiseES[q].ln:null),color:C.teal}],true);
-  hbarPctNamed('c4',[['Learned something new',c.learnedNew],['Easy to understand',c.easy],['Relevant to needs',c.relevant]],[C.purple,C.pink,C.teal]);
+  hbarPctNamed('c4',[['Learned something new',wLn],['Easy to understand',wEa],['Relevant to needs',wRe]],[C.purple,C.pink,C.teal]);
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('WISE outcomes by quarter (English, MOD)',['Quarter','Learned new','Easy','Relevant','N'],qs.map(q=>[QL[q],c.wiseEN[q]?c.wiseEN[q].ln+'%':'n/a',c.wiseEN[q]?c.wiseEN[q].ea+'%':'n/a',c.wiseEN[q]?c.wiseEN[q].re+'%':'n/a',fmt(c.wiseEN[q]?c.wiseEN[q].n:null)],[1,2,3,4]))}
     ${tbl('WISE outcomes by quarter (Spanish, Nacersano)',['Quarter','Learned new','Easy','Relevant','N'],qs.map(q=>[QL[q],c.wiseES[q]&&c.wiseES[q].ln!=null?c.wiseES[q].ln+'%':'n/a',c.wiseES[q]&&c.wiseES[q].ea!=null?c.wiseES[q].ea+'%':'n/a',c.wiseES[q]&&c.wiseES[q].re!=null?c.wiseES[q].re+'%':'n/a',fmt(c.wiseES[q]?c.wiseES[q].n:null)],[1,2,3,4]))}
@@ -593,7 +605,7 @@ R.cons_ldbb=(k,ch,dt)=>{
     ${tbl('Page views by topic',['Topic','Views'],c.topics.map(r=>[r[0],fmt(r[1])]))}
     ${tbl('Who visits (multi-select)',['Audience','%'],c.who.map(r=>[r[0],r[1]+'%']))}
     ${tbl('Resource downloads',['Resource','Downloads'],c.dls.map(r=>[r[0],fmt(r[1])]))}
-  </div>`,'WISE English (MOD) and Spanish (Nacersano) pop-up surveys, validated to 6/30/2026. Spanish percentages are based on fewer than 20 responses per quarter (N=9 to 16) and are directional, not precise. Spanish had no Q2 2026 responses. Page-view detail is current through Q1 2026.');
+  </div>`,'WISE pop-up surveys through 6/30/2026. Spanish percentages use small samples (N under 20) and are directional.');
 };
 R.cons_hca=(k,ch,dt)=>{
   const mk=MK();
@@ -622,7 +634,7 @@ R.cons_hca=(k,ch,dt)=>{
       ['Hypertension kits',hasMI()?htnBy('miami'):'n/a',hasHOU()?htnBy('houston'):'n/a',htn]],[1,2,3])}
     ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',HCA.consLearnedNew+'%'],['Relevant to needs',HCA.consRelevant+'%']])}
     ${tbl('Partners and community events by period',['Period','Partners','Community events'],partnersF().map(p=>[p.period,(hasMI()?p.pMI:0)+(hasHOU()?p.pHOU:0),(hasMI()?p.eMI:0)+(hasHOU()?p.eHOU:0)]))}
-  </div>`,'Q2 2026 market figures (consumers, materials, bags, partners, community events) are preliminary, reflecting April and May from the market CI trackers; June is still being entered. Basic-need bags combine general basic-need and food/diaper bags; hypertension kits are counted separately. WISE pop-up surveys run on consumer education pages: blood clots, diabetes, gestational diabetes, high blood pressure, preeclampsia, and the LDA landing page.');
+  </div>`,'Q2 2026 market figures are preliminary (April–May). Basic-need bags include food and diaper bags; hypertension kits counted separately.');
 };
 
 function awareView(k,ch,dt){
@@ -635,24 +647,24 @@ function awareView(k,ch,dt){
     kpi('t','Engagements',eng==null?'Pending':fmt(eng),null,eng==null?'Q2 2026 pending':'Likes, shares, clicks')+
     kpi('p','Earned Media Reach',big(a.earnedMedia)+'+',null,`Program-wide · ${fmt(arts)} articles`);
   const qlbl = S.quarter==='all'?'Aug 2025 to present':QL[S.quarter];
-  ch.innerHTML=`<div class="row two">${card('a1','Impressions and reach over time','By quarter. Click a legend item to toggle a series.',300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`;
+  ch.innerHTML=`<div class="row two">${card('a1','Impressions and reach over time','By quarter. Click a legend item to toggle a series.'+(S.quarter==='all'?'':' · '+QL[S.quarter]+' highlighted'),300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`;
   areaLine('a1',QA.map(q=>QL[q]),[
     {label:'Impressions',data:QA.map(q=>a.imprQ[q]??null),color:C.purple,fill:'rgba(123,47,190,.13)'},
     {label:'Reach',data:QA.map(q=>a.reachQ[q]??null),color:C.pink,fill:'rgba(224,33,138,.11)'},
     {label:'Engagements',data:QA.map(q=>a.engQ[q]??null),color:C.teal,fill:'rgba(0,169,157,.12)'}]);
   const agg=[0,0,0,0]; qs.forEach(q=>{ if(a.chanQ[q]) a.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('a2',agg);
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Awareness campaign metrics (as reported to HCA, goal 15M impressions)',['Metric','Total'],[
+    ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Total'],[
       ['# Impressions',fmt(HCA.report.impr)],['# Engagements',fmt(HCA.report.eng)],['# Reach (unique people)',fmt(HCA.report.reach)],['# Earned media reach',fmt(HCA.report.earned)+'+']],[1])}
     ${tbl('LDA-related digital activity by quarter (analytics)',['Quarter','Impressions','Reach','Engagements'],QA.map(q=>[QL[q],fmt(a.imprQ[q]),fmt(a.reachQ[q]),fmt(a.engQ[q])]))}
     ${tbl('Channel breakdown by quarter (impressions)',['Quarter','Social','Website','Paid','OOH'],QA.map(q=>[QL[q],fmt(a.chanQ[q]?a.chanQ[q][0]:null),fmt(a.chanQ[q]?a.chanQ[q][1]:null),fmt(a.chanQ[q]?a.chanQ[q][2]:null),fmt(a.chanQ[q]?a.chanQ[q][3]:null)]))}
     ${tbl('Organic social media by quarter',['Quarter','Posts','Impressions'],QA.map(q=>[QL[q],fmt(a.postsQ[q]),fmt(a.socImprQ[q])]))}
     ${tbl('Website, earned media and email by quarter',['Quarter','Website views','LDA landing','Earned articles','Email sends'],QA.map(q=>[QL[q],fmt(a.webPvQ[q]),fmt(a.ldaLandQ[q]),fmt(a.earnedArtQ[q]),fmt(a.emailQ[q])]))}
-  </div>`,'Figures reported to HCA (571,289 impressions, 283,179 engagements, 490,887 reach, 605M+ earned media) are program-wide marketing totals. By-quarter tables show LDA web and social analytics; Q2 2026 detail is pending from the marketing team.');
+  </div>`,'Figures reported to HCA are program-wide marketing totals. By-quarter tables show LDA analytics; Q2 2026 pending.');
 }
 R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
 R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
-  note.innerHTML='Public Awareness runs as a single national LDBB&#8482; campaign and is not split by market. The figures below are program-wide, shown by quarter.';
+  note.innerHTML='Public Awareness is a single national LDBB&#8482; campaign, not split by market.';
   awareView(k,ch,dt); };
 
 // ── QI EVALUATION (HCA grant / LDA only) ──
@@ -675,13 +687,13 @@ R.qi=(k,ch,dt,note)=>{
   note.innerHTML=qiControls();
   const C2=QI.clinics, idx = S.clinic==='both'?[0,1]:(S.clinic==='a'?[0]:[1]);
   if(S.qiTool!=='pre'){
-    const meta={process:['Process Measures Survey','Quarterly','Screening implementation (first visit, by 28 weeks), risk identification, LDA prescribing, follow-up and adherence, timely initiation (12 to 16 / 17 to 28 weeks), plus race/ethnicity and insurance equity stratifications and balancing measures. Each reported as numerator over denominator.'],
-      checklist:['Implementation Checklist','Monthly','A 0 to 4 adoption scale across screening and risk classification, LDA counseling and prescribing, documentation, and staff training, plus barriers, progress, and successes.'],
-      patient:['Patient Surveys & Interviews','Ongoing','Patient Experience Survey, Provider Practice and Pulse surveys, and semi-structured patient interviews on preeclampsia and LDA communication, understanding, and decision-making.']}[S.qiTool];
+    const meta={process:['Process Measures Survey','Quarterly','Screening, risk identification, LDA prescribing, follow-up, and equity measures. Reported as numerator over denominator.'],
+      checklist:['Implementation Checklist','Monthly','A 0–4 adoption scale across screening, counseling, prescribing, documentation, and training.'],
+      patient:['Patient Surveys & Interviews','Ongoing','Patient experience and provider surveys, plus patient interviews on preeclampsia and LDA communication.']}[S.qiTool];
     ch.innerHTML=`<div class="card"><h3>${meta[0]}</h3><div class="ch-sub">Cadence: ${meta[1]} &nbsp;|&nbsp; HCA grant (LDA) &nbsp;|&nbsp; Clinic A and Clinic B</div>
       <div style="padding:22px 2px 8px;color:var(--muted);font-size:13.5px;line-height:1.7">
         <div style="display:inline-block;font-weight:800;color:var(--purple);font-size:13px;background:#F3EEFA;border:1px solid #E3D6F4;border-radius:8px;padding:4px 12px;margin-bottom:14px">Awaiting data</div><br>
-        ${meta[2]}<br><br>Data collection begins with the first QI cohort (Q2 2026 to Q3 2027). This section is scaffolded now and will populate as the two clinics report.</div></div>`;
+        ${meta[2]}<br><br>Data collection runs Q2 2026 to Q3 2027. This section will populate as the clinics report.</div></div>`;
     return;
   }
   // Pre-implementation baseline
@@ -794,7 +806,7 @@ function refresh(){
   const ml={all:'all Florida and Texas markets',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
   const qf=S.quarter==='all'?'August 2025 to present':QL[S.quarter];
   document.getElementById('pg-sub').textContent = isQI
-    ? 'HCA Grant (LDA) - Quality Improvement Evaluation - Clinic A and Clinic B (de-identified)'
+    ? 'HCA Grant (LDA) - Quality Improvement Evaluation'
     : hca ? (S.page==='aware'?'National LDBB campaign, '+qf:'HCA Grant, '+ml+', '+qf)
     : 'LDBB national campaign, '+qf;
   render();
