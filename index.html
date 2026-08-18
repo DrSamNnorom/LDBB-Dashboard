@@ -12,7 +12,7 @@
 <script>function track(p){try{if(window.goatcounter&&window.goatcounter.count){window.goatcounter.count({path:p,title:p,event:true});}}catch(e){}}</script>
 <style>
   :root{
-    --purple:#5B2A86; --purple2:#7B2FBE; --pink:#C2185B; --teal:#0E8A7D;
+    --purple:#5B2A86; --purple2:#7040A4; --pink:#BE3A69; --teal:#128577;
     --ink:#23202B; --muted:#6B6675; --line:#ECE8F1; --bg:#F6F4FA; --card:#FFFFFF; --sidebar:#33184F; --track:#EBE4F3;
     --radius:14px; --shadow-sm:0 1px 3px rgba(40,20,70,.05); --shadow:0 2px 4px rgba(40,20,70,.04),0 8px 24px rgba(40,20,70,.06);
   }
@@ -136,16 +136,25 @@
   details.det>summary .chev{transition:.2s;color:var(--muted)}
   details.det[open]>summary .chev{transform:rotate(180deg)}
   .det-body{padding:18px 20px 20px}
-  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px 26px}
-  .tbl-title{font-size:11px;font-weight:800;margin-bottom:8px;color:var(--purple);text-transform:uppercase;letter-spacing:.5px}
-  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;-webkit-overflow-scrolling:touch}
-  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:260px}
-  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.4}
-  thead th{font-size:10px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:700;background:#FAF8FC}
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px 22px;align-items:start}
+  .tblc{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+  .tbl-hd{padding:11px 14px 9px;background:#FAF8FC;border-bottom:1px solid var(--line)}
+  .tbl-title{font-size:11px;font-weight:800;margin:0;color:var(--purple);text-transform:uppercase;letter-spacing:.5px}
+  .tbl-desc{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;text-transform:none;letter-spacing:0;font-weight:500}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:8px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.4}
+  thead th{font-size:10px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:700;background:#FCFAFE}
   tbody tr:last-child td{border-bottom:0}
-  tbody tr:nth-child(even){background:#FBFAFD}
+  tbody tr:nth-child(even){background:#FCFBFE}
   th.n,td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   tr.tot td{font-weight:800;border-top:2px solid var(--line);color:var(--ink);background:#F3EEFA}
+  .tblc.wide{grid-column:1 / -1}
+  tr.tr-extra{display:none}
+  .tblc.tbl-open tr.tr-extra{display:table-row}
+  .tbl-more{border:0;border-top:1px solid var(--line);background:#fff;color:var(--purple);font-weight:700;font-size:11px;
+    padding:8px 14px;cursor:pointer;text-align:left;letter-spacing:.3px;width:100%}
+  .tbl-more:hover{background:#FBF9FD}
   .det-note{font-size:11px;color:var(--muted);margin-top:16px;font-style:italic;line-height:1.55;border-top:1px solid var(--line);padding-top:12px}
   .backdrop{display:none;position:fixed;inset:0;background:rgba(20,10,35,.45);z-index:44}
   body.nav-open .backdrop{display:block}
@@ -242,7 +251,7 @@ window.MOD_LOGO64_W='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAACjCAYAA
   <div class="sb-cat">Export</div>
   <button class="exp" onclick="exportPDF()"><svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export to PDF</button>
   <button class="exp" onclick="exportXLSX()"><svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export to Excel</button>
-  <div class="sb-foot">March of Dimes, LDBB&#8482; Campaign<br>Reporting period: August 2025 to present</div>
+  <div class="sb-foot">March of Dimes, LDBB&#8482; Campaign<br>Grant Year 1: Aug 2025 to Jun 30, 2026</div>
 </aside>
 <div class="backdrop" onclick="toggleNav()"></div>
 
@@ -456,6 +465,32 @@ const QI = {
     leadership:['Very supportive','Very supportive'],
     capacity:['Strong capacity','Strong capacity'],
     factors:[['Leadership involvement','Helped','Helped'],['Staffing levels','Made it difficult','Helped'],['Workflows','Helped','Helped'],['EHR capabilities','Helped','Made it difficult'],['Time for training','Made it difficult','Helped'],['Staff continuity / turnover','Made it difficult','Made it difficult'],['Priority alignment','Not selected','Helped']]
+  },
+  // Process Measures Survey, June 2026 baseline. De-identified (Clinic A, Clinic B).
+  // Source: QI_Process_Survey_CleanData.xlsx + QI Process Survey Baseline Report (Updated).
+  process:{
+    period:'June 2026', responded:2,
+    // [measure, denominatorLabel, A_denom, A_num, B_denom, B_num]
+    scorecard:[
+      ['LDA staff training','Prenatal staff and providers',48,3,33,5],
+      ['Risk assessment at first visit','First prenatal visits',15,4,104,36],
+      ['Standardized 28-week screening','Reached 28 weeks',15,8,94,9],
+      ['Moderate-risk prescribed LDA','Moderate risk identified',2,2,7,5],
+      ['High-risk prescribed LDA','High risk identified',6,6,2,2]
+    ],
+    followup:{ A:{prescribed:8,asked:4,taking:4,noRx:0}, B:{prescribed:23,asked:23,taking:18,noRx:0} },
+    timing:[['Before 12 weeks',1,0],['12 to 16 weeks',2,7],['16 to 28 weeks',1,14],['After 28 weeks',0,2],['Timing unknown',0,0]],
+    aligned:[
+      'Every demographic breakdown of the 28-week cohort cross-foots to its stated total at both clinics (12 of 12 blocks).',
+      'High-risk prescribing is 100% at both clinics: every patient documented high risk left with an LDA prescription.',
+      'Neither clinic reports any patient taking LDA without a prescription; both report the same June 2026 period.'
+    ],
+    notAligned:[
+      'Standardized 28-week screening depth: Clinic A 53%, Clinic B 10% (Clinic B is re-instructing providers to document in the EMR).',
+      'Follow-up and timing use different denominators: Clinic A reports its 28-week cohort; Clinic B reports all 23 June LDA patients.',
+      'Training coverage differs by more than double (6% vs 15%), thin at both sites.'
+    ],
+    note:'Baseline collected June 2026 from two HCA-market clinics, de-identified as Clinic A and Clinic B. Counts are operational QI figures; small cells (n under 5) are shown for the evaluation and clinic teams and should be suppressed if shared more widely. Denominator interpretation differs between clinics on the follow-up, timing and "without assessment" items; the counts themselves are trustworthy and cross-foot to their stated totals. The next cycle standardizes those denominators and adds entry-time validation.'
   }
 };
 // Postpartum survey (HCA grant, national, consumer-facing). Restricted to the HCA grant window 08/2025 to 06/2026.
@@ -471,7 +506,7 @@ const PP = {
 const S = { page:'overview', scope:'ldbb', market:'all', quarter:'all', qiTool:'pre', clinic:'both', mmetric:'materials' };
 // Brand tokens: the dashboard's original darker purples restored (owner preference 2026-08-03,
 // over the brighter deck purple). Deep pink for Houston, teal reserved for consumer outcomes.
-const C = { purple:'#7B2FBE', pink:'#C2185B', teal:'#0E8A7D', purpleLt:'#C7B8F4' };
+const C = { purple:'#7040A4', pink:'#BE3A69', teal:'#128577', purpleLt:'#CDC1EC' };
 const PAGES = { overview:{title:'Overview'}, prof:{title:'Professional Education'},
   cons:{title:'Consumer Education'}, aware:{title:'Public Awareness'}, qi:{title:'QI Evaluation'} };
 const ICON = {
@@ -515,10 +550,25 @@ function kpi(cls,label,val,pctOrNull,cap){
 }
 function card(id,title,sub,h,hero){ return `<div class="card${hero?' hero':''}"><h3>${title}</h3>${sub?`<div class="ch-sub">${sub}</div>`:''}<div class="wrap${h>290?' tall':''}" style="height:${h||260}px"><canvas id="${id}" role="img" aria-label="${title}${sub?', '+sub:''}. Full values in the data tables below."></canvas></div></div>`; }
 function details(inner,note){ return `<details class="det" aria-label="Data tables"><summary>View details<span class="chev">&#9662;</span></summary><div class="det-body">${inner}${note?`<div class="det-note">${note}</div>`:''}</div></details>`; }
-function tbl(title,head,rows,numCols){
+let TBLID=0;
+function tblMore(id,btn){
+  const el=document.getElementById(id); if(!el) return;
+  const open=el.classList.toggle('tbl-open');
+  btn.innerHTML=open?'See less &#9652;':btn.dataset.lbl;
+}
+// tbl(title, head[], rows[][], numCols[], opt{desc, max})
+function tbl(title,head,rows,numCols,opt){
+  opt=opt||{};
   const isN=i=> numCols? numCols.includes(i) : i>0;
-  return `<div><div class="tbl-title">${title}</div><div class="tbl-wrap"><table><thead><tr>${head.map((h,i)=>`<th${isN(i)?' class="n"':''}>${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td${isN(i)?' class="n"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+  const cap = opt.max || 7;
+  const id='tb'+(TBLID++);
+  const th=head.map((h,i)=>`<th${isN(i)?' class="n"':''}>${h}</th>`).join('');
+  const body=rows.map((r,ri)=>`<tr${ri>=cap?' class="tr-extra"':''}>${r.map((c,i)=>`<td${isN(i)?' class="n"':''}>${c}</td>`).join('')}</tr>`).join('');
+  const desc = opt.desc?`<div class="tbl-desc">${opt.desc}</div>`:'';
+  const more = rows.length>cap
+    ? `<button type="button" class="tbl-more" data-lbl="See ${rows.length-cap} more &#9662;" onclick="tblMore('${id}',this)">See ${rows.length-cap} more &#9662;</button>` : '';
+  return `<div class="tblc${opt.wide?' wide':''}" id="${id}"><div class="tbl-hd"><div class="tbl-title">${title}</div>${desc}</div>`
+    +`<div class="tbl-wrap"><table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>${more}</div>`;
 }
 const BASE={responsive:true,maintainAspectRatio:false};
 function prepost(id,labels,pre,post){
@@ -582,7 +632,7 @@ function monthStats(){
   const peakIdx=MON.labels.map((_,i)=>i<gy?((hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0)):-1)
                  .reduce((b,v,i,arr)=>v>arr[b]?i:b,0);
   return `<div class="mstat">
-    <div>Grant year to date<b>${fmt(tot)}</b></div>
+    <div>Grant Year 1 total<b>${fmt(tot)}</b></div>
     <div>Aug to Dec 2025<b>${fmt(tot-jj)}</b></div>
     <div>Jan to Jun 2026<b>${fmt(jj)}</b></div>
     <div>Busiest month<b>${MON.labels[peakIdx]} ${peakIdx<5?'2025':'2026'}</b></div>
@@ -613,7 +663,7 @@ function monthRows(getMI,getHOU){
       `<td class="n">${fmt((mi||0)+(ho||0))}</td></tr>`;
   }
   const g=(f)=>{let t=0;for(let i=0;i<MON.gyEnd;i++)t+=f(i);return t;};
-  rows+=`<tr><td><b>Grant year total</b></td><td class="n"><b>${hasMI()?fmt(g(getMI)):'n/a'}</b></td>`+
+  rows+=`<tr><td><b>Grant Year 1 total</b></td><td class="n"><b>${hasMI()?fmt(g(getMI)):'n/a'}</b></td>`+
     `<td class="n"><b>${hasHOU()?fmt(g(getHOU)):'n/a'}</b></td>`+
     `<td class="n"><b>${fmt((hasMI()?g(getMI):0)+(hasHOU()?g(getHOU):0))}</b></td></tr>`;
   return rows;
@@ -642,7 +692,7 @@ function servedStats(){
   const pk=MON.labels.map((_,i)=>i<post?((hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0)):-1)
             .reduce((b,v,i,a)=>v>a[b]?i:b,0);
   return `<div class="mstat">
-    <div>Grant year to date<b>${fmt(tot)}</b></div>
+    <div>Grant Year 1 total<b>${fmt(tot)}</b></div>
     <div>Aug to Dec 2025<b>${fmt(tot-jj)}</b></div>
     <div>Jan to Jun 2026<b>${fmt(jj)}</b></div>
     <div>Busiest month<b>${MON.labels[pk]} ${pk<5?'2025':'2026'}</b></div>
@@ -751,25 +801,29 @@ R.overview_ldbb=(k,ch,dt)=>{
     kpi('p','Consumer Page Views',big(pv),null,'English-language LDA pages');
   ch.innerHTML=
     card('o1','Campaign momentum','Impressions and engagements by quarter'+(S.quarter==='all'?'':' | '+QL[S.quarter]+' highlighted'),300,true)+
-    `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+(S.quarter==='all'?'Aug 2025 to present':QL[S.quarter]),270)}</div>`;
+    `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+(S.quarter==='all'?'Grant Year 1':QL[S.quarter]),270)}</div>`;
   areaLine('o1',QA.map(q=>QL[q]),[
-    {label:'Impressions',data:QA.map(q=>LDBB.aware.imprQ[q]??null),color:C.purple,fill:'rgba(123,47,190,.13)'},
-    {label:'Engagements',data:QA.map(q=>LDBB.aware.engQ[q]??null),color:C.pink,fill:'rgba(224,33,138,.11)'}]);
+    {label:'Impressions',data:QA.map(q=>LDBB.aware.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
+    {label:'Engagements',data:QA.map(q=>LDBB.aware.engQ[q]??null),color:C.pink,fill:'rgba(190,58,105,.12)'}]);
   hbarPctNamed('o2',[['Learned something new',p.learnedNew],['Content valuable',p.valuable],['Intent to change practice',p.intentChange]],[C.purple,C.pink,C.teal]);
   const agg=[0,0,0,0,0,0]; QS().forEach(q=>{ if(LDBB.aware.chanQ[q]) LDBB.aware.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('o3',agg);
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Program snapshot',['Pillar','Metric','Value'],[
       ['Professional Education','Module completions (Aug 2025+)',fmt(comp)],
-      ['','Program to date',fmt(p.progToDate)],
-      ['','Learned something new',p.learnedNew+'%'],
+      ['Professional Education','Program to date',fmt(p.progToDate)],
+      ['Professional Education','Learned something new',p.learnedNew+'%'],
       ['Consumer Education','Page views (English)',fmt(pv)],
-      ['','Learned something new',LDBB.cons.learnedNew+'%'],
+      ['Consumer Education','Learned something new',LDBB.cons.learnedNew+'%'],
       ['Public Awareness','Total impressions',fmt(impr)],
-      ['','Engagements',fmt(sumq(LDBB.aware.engQ))]],[2])}
-    ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],QA.map(q=>[QL[q],fmt(p.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]))}
-    ${tbl('Top states by professionals educated',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']))}
-    ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']])}
-  </div>`,'Q2 2026 awareness and page-view data pending. Other metrics current through Q2 2026.');
+      ['Public Awareness','Engagements',fmt(sumq(LDBB.aware.engQ))]],[2],
+      {desc:'Headline result for each of the three LDBB pillars, Grant Year 1 to date.'})}
+    ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],QA.map(q=>[QL[q],fmt(p.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]),null,
+      {desc:'Two quarters in 2025 (Q3, Q4) and two in 2026 (Q1, Q2).'})}
+    ${tbl('Top states by professionals educated',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
+      {desc:'Learners by state of residence (LMS). Share is of the 552 national completers.'})}
+    ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']],null,
+      {desc:'WISE pop-up survey on the English LDA pages (N='+fmt(LDBB.cons.surveyN)+').'})}
+  </div>`,'All figures are final for Grant Year 1 (Aug 2025 to Jun 30, 2026): two quarters in 2025 (Q3, Q4) and two in 2026 (Q1, Q2). Awareness and page-view data are complete through Q2 2026.');
 };
 R.overview_hca=(k,ch,dt)=>{
   const mkt=MK();
@@ -810,14 +864,14 @@ R.overview_hca=(k,ch,dt)=>{
       <div class="rl-bar">${hasMI()?`<i style="width:${Math.round(servedBy('miami')/served*100)}%;background:${C.purple}"></i>`:''}${hasHOU()?`<i style="width:${Math.round(servedBy('houston')/served*100)}%;background:${C.pink}"></i>`:''}</div>
       <div class="rl-cap"><span>${part} partners</span><span>${aff} HCA affiliates</span></div></li>`;
   ch.innerHTML=
-    `<div class="secband">Grant year: Aug 15, 2025 to Jun 30, 2026</div>`+
+    `<div class="secband">Grant Year 1: Aug 15, 2025 to Jun 30, 2026</div>`+
     `<div class="card hero"><h3>Individuals served by quarter</h3>
        <div class="ch-sub">Materials distributed plus consumers educated one-on-one</div>
        <div id="ostats">${servedStats()}</div>
        <div class="wrap tall" style="height:295px"><canvas id="h1" role="img" aria-label="Individuals served by quarter and market. Monthly detail in the table below."></canvas></div>
        ${monthDetail('h1det',i=>servedM('miami')[i],i=>servedM('houston')[i])}</div>`+
     `<div class="row two"><div class="card"><h3>Year 1 goals, delivered</h3><div class="ch-sub">Every contract goal met and exceeded. The white mark on each bar is the goal line.</div><ul class="rlist">${goals}</ul></div>
-      <div class="card"><h3>Geographic reach</h3><div class="ch-sub">Grant year to date, by HCA division</div><ul class="rlist">${rlist}</ul></div></div>`;
+      <div class="card"><h3>Geographic reach</h3><div class="ch-sub">Grant Year 1 total, by HCA division</div><ul class="rlist">${rlist}</ul></div></div>`;
   drawServedQuarterly('h1');
   const geo=[];
   if(hasMI()) geo.push([`${HCA.regions.miami} (Miami, FL)`,fmt(servedBy('miami')),partBy('miami'),HCA.affiliates.miami]);
@@ -833,10 +887,10 @@ R.overview_hca=(k,ch,dt)=>{
       ['Learners completed module',fmt(comp)+` (${pctf(comp,HCA.goalPartners)}%)`,fmt(HCA.goalPartners)],
       ['Publications / deliverables',fmt(HCA.publications),'As needed']],[1,2])}
     ${tbl('Geographic reach',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3])}
-    ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Jan to Jun 2026','Grant year to date'],[
+    ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Jan to Jun 2026','Grant Year 1 total'],[
       ['# Impressions',fmt(rep.impr),fmt(repY.impr)],
       ['# Engagements',fmt(rep.eng),fmt(repY.eng)],
-      ['# Reach','Grant year measure',fmt(repY.reach)],
+      ['# Reach','Grant Year 1 measure',fmt(repY.reach)],
       ['# Earned media reach',fmt(rep.earned),fmt(repY.earned)]],[1,2])}
     ${tbl('Named external partners',['Partner','Region'],pnRows)}
     ${tbl('Program outcome metrics (served and achieved)',['Outcome','Served','Achieved'],[
@@ -848,7 +902,7 @@ R.overview_hca=(k,ch,dt)=>{
       ['Total award','$'+fmt(HCA.award.total)],
       ['Payment schedule','3 payments of $'+fmt(HCA.award.each)],
       ['Payment dates',HCA.award.payments.join(', ')]])}
-  </div>`,'Individuals Served = materials distributed + consumers educated. Reach is a grant year measure.');
+  </div>`,'Individuals Served = materials distributed + consumers educated. Reach is a Grant Year 1 measure.');
 };
 
 R.prof_ldbb=(k,ch,dt)=>{
@@ -893,11 +947,11 @@ R.prof_hca=(k,ch,dt)=>{
   if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']));
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Professionals educated by state and quarter (LMS)',['Quarter','Florida','Texas','Total'],qs.map(q=>[QL[q],fmt(HCA.stateVal.fl[q]),fmt(HCA.stateVal.tx[q]),(HCA.stateVal.fl[q]||0)+(HCA.stateVal.tx[q]||0)]),[1,2,3])}
-    ${tbl('Professionals educated, grant year',['Scope','Count'],[['Florida',fmt(52)],['Texas',fmt(132)],['Florida and Texas',fmt(184)],['National (LDBB)',fmt(552)]],[1])}
+    ${tbl('Professionals educated, Grant Year 1',['Scope','Count'],[['Florida',fmt(52)],['Texas',fmt(132)],['Florida and Texas',fmt(184)],['National (LDBB)',fmt(552)]],[1])}
     ${tbl('Provider education outcomes (FL and TX learners)',['Measure','%'],[['Learned something new',HCA.survey.all.learnedNew+'%'],['Intend to change a practice',HCA.survey.all.intentChange+'%'],['Content was valuable',HCA.survey.all.valuable+'%']])}
     ${tbl('Clinical QI outcome',['Outcome','Value'],[['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI protocol data':HCA.screenFirstVisit+'%']],[1])}
     ${roleRows}
-  </div>`,'Professionals educated comes from the LMS, counted by learner state of residence over the grant year (Aug 15 2025 to Jun 30 2026): Florida 52 + Texas 132 = 184, of a national total of 552. The LMS is the single source for this metric; market activity trackers are not used.');
+  </div>`,'Professionals educated comes from the LMS, counted by learner state of residence over Grant Year 1 (Aug 15 2025 to Jun 30, 2026): Florida 52 + Texas 132 = 184, of a national total of 552. The LMS is the single source for this metric; market activity trackers are not used.');
 };
 
 R.cons_ldbb=(k,ch,dt)=>{
@@ -905,7 +959,7 @@ R.cons_ldbb=(k,ch,dt)=>{
   // WISE outcomes: react to a single-quarter selection when quarterly data exists; otherwise show pooled YTD.
   const wq = S.quarter!=='all' && c.wiseEN[S.quarter] ? c.wiseEN[S.quarter] : null;
   const wLn = wq? wq.ln : c.learnedNew, wEa = wq? wq.ea : c.easy, wRe = wq? wq.re : c.relevant, wN = wq? wq.n : c.surveyN;
-  const wsub = wq ? QL[S.quarter]+' | N='+fmt(wN) : 'Aug 2025 to present | pooled';
+  const wsub = wq ? QL[S.quarter]+' | N='+fmt(wN) : 'Grant Year 1 | pooled';
   k.innerHTML=
     kpi('p','Page Views',big(sumq(c.pvQ)),null,`Plus ${fmt(sumq(c.spQ))} Spanish-language`)+
     kpi('k','Resource Downloads',big(sumq(c.dlQ)),null,'Risk checklist most downloaded')+
@@ -967,7 +1021,7 @@ R.cons_hca=(k,ch,dt)=>{
       `<div class="wrap tall" style="height:295px"><canvas id="cc1" role="img" aria-label="Market delivery by quarter, Miami and Houston. Monthly detail in the table below."></canvas></div>
       <div id="mmdet"></div></div>`+
     `<div class="row two">${card('cc2','Market delivery by quarter','Materials and consumers educated, both markets',352)}
-      <div class="card"><h3>Community delivery, grant year</h3><div class="ch-sub">Grant year totals, split by reporting period</div>${dkey}<ul class="rlist">${dlist}</ul></div></div>`+
+      <div class="card"><h3>Community delivery, Grant Year 1</h3><div class="ch-sub">Grant Year 1 totals, split by reporting period</div>${dkey}<ul class="rlist">${dlist}</ul></div></div>`+
     `<div class="row two">${card('cc3','Consumer page views by quarter','LDA landing and preeclampsia pages (English)',252)}${card('cc4','WISE pop-up survey outcomes','Percent of respondents who agreed',252)}</div>`+
     `<div class="card"><h3>In their own words</h3><div class="ch-sub">Qualitative findings from the WISE pop-up survey</div>
       <div class="voices">
@@ -1014,28 +1068,29 @@ function awareView(k,ch,dt){
   k.innerHTML=
     kpi('p','Total Impressions',impr==null?'Pending':big(impr),goalPct,`${goalPct==null?'':pctf(impr,a.goalImpr)+'% of the '+big(a.goalImpr)+' goal'}`)+
     kpi('k','Earned Media Reach',earned==null?'Pending':big(earned),null,`Potential audience | ${fmt(arts)} articles`)+
-    kpi('t','Reach',big(allQ?a.reachGY:a.reachQ[S.quarter]),null,allQ?'Unique people, deduplicated across the grant year':'Unique people reached in '+QL[S.quarter])+
+    kpi('t','Reach',big(allQ?a.reachGY:a.reachQ[S.quarter]),null,allQ?'Unique people, deduplicated across Grant Year 1':'Unique people reached in '+QL[S.quarter])+
     kpi('p','Engagements',eng==null?'Pending':big(eng),null,'Social, email opens, downloads, clicks');
-  const qlbl = S.quarter==='all'?'Aug 2025 to present':QL[S.quarter];
+  const qlbl = S.quarter==='all'?'Grant Year 1':QL[S.quarter];
   ch.innerHTML=`<div class="row two">${card('a1','Impressions and engagements over time','By quarter. Click a legend item to toggle a series.'+(S.quarter==='all'?'':' | '+QL[S.quarter]+' highlighted'),300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`
     +card('ais1','AI search (SERP) impressions by quarter','Estimated AI search impressions, HCA grant period; the shift from page views to AI answers',300,true)
     +`<div class="row two">${card('ais2','AI SERP versus LDA content page views','Indexed to Q3 2025 = 100',290)}${card('ais3','AI SERP versus preeclampsia page','Indexed to Q3 2025 = 100',290)}</div>`;
   areaLine('a1',QA.map(q=>QL[q]),[
-    {label:'Impressions',data:QA.map(q=>a.imprQ[q]??null),color:C.purple,fill:'rgba(123,47,190,.13)'},
-    {label:'Engagements',data:QA.map(q=>a.engQ[q]??null),color:C.teal,fill:'rgba(0,169,157,.12)'}]);
+    {label:'Impressions',data:QA.map(q=>a.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
+    {label:'Engagements',data:QA.map(q=>a.engQ[q]??null),color:C.teal,fill:'rgba(18,133,119,.13)'}]);
   const agg=[0,0,0,0,0,0]; qs.forEach(q=>{ if(a.chanQ[q]) a.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('a2',agg);
   const _ais=[2626756,3866162,3882855,5487533], _cpv=[39563,57651,28801,18252], _ppv=[20234,19873,17144,11061], _ql=QA.map(q=>QL[q]);
-  areaLine('ais1',_ql,[{label:'AI SERP impressions',data:_ais,color:C.teal,fill:'rgba(0,169,157,.12)'}]);
+  areaLine('ais1',_ql,[{label:'AI SERP impressions',data:_ais,color:C.teal,fill:'rgba(18,133,119,.13)'}]);
   idxLine('ais2',_ql,[{label:'AI SERP',data:_ais,color:C.teal},{label:'LDA content page views',data:_cpv,color:'#E0218A',dash:true}]);
   idxLine('ais3',_ql,[{label:'AI SERP',data:_ais,color:C.teal},{label:'Preeclampsia page views',data:_ppv,color:'#F5A623',dash:true}]);
   const gy=(o)=>QA.reduce((s,q)=>s+(o[q]||0),0);
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('The four awareness metrics by quarter',['Metric','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant year'],[
+    ${tbl('The four awareness metrics by quarter',['Metric','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Impressions',fmt(a.imprQ.q3),fmt(a.imprQ.q4),fmt(a.imprQ.q1),fmt(a.imprQ.q2),fmt(gy(a.imprQ))],
       ['Engagements',fmt(a.engQ.q3),fmt(a.engQ.q4),fmt(a.engQ.q1),fmt(a.engQ.q2),fmt(gy(a.engQ))],
-      ['Reach (grant year is deduplicated, not a sum)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)],
-      ['Earned media reach',fmt(a.earnedImprQ.q3),fmt(a.earnedImprQ.q4),fmt(a.earnedImprQ.q1),fmt(a.earnedImprQ.q2),fmt(gy(a.earnedImprQ))]],[1,2,3,4,5])}
-    ${tbl('Impressions, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant year'],[
+      ['Reach (deduplicated, not a sum)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)],
+      ['Earned media reach',fmt(a.earnedImprQ.q3),fmt(a.earnedImprQ.q4),fmt(a.earnedImprQ.q1),fmt(a.earnedImprQ.q2),fmt(gy(a.earnedImprQ))]],[1,2,3,4,5],
+      {wide:true,desc:'Grant Year 1 = Aug 2025 to Jun 30, 2026. Reach is deduplicated across quarters, so quarters do not sum to the Grant Year 1 figure.'})}
+    ${tbl('Impressions, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Website page views',fmt(a.webPvQ.q3),fmt(a.webPvQ.q4),fmt(a.webPvQ.q1),fmt(a.webPvQ.q2),fmt(gy(a.webPvQ))],
       ['Social impressions',fmt(a.socImprQ.q3),fmt(a.socImprQ.q4),fmt(a.socImprQ.q1),fmt(a.socImprQ.q2),fmt(gy(a.socImprQ))],
       ['AI SERP impressions',fmt(a.aiSerpQ.q3),fmt(a.aiSerpQ.q4),fmt(a.aiSerpQ.q1),fmt(a.aiSerpQ.q2),fmt(gy(a.aiSerpQ))],
@@ -1043,24 +1098,24 @@ function awareView(k,ch,dt){
       ['Direct mail delivered',fmt(a.dmQ.q3),fmt(a.dmQ.q4),fmt(a.dmQ.q1),fmt(a.dmQ.q2),fmt(gy(a.dmQ))],
       ['Out-of-home impressions',fmt(a.oohQ.q3),fmt(a.oohQ.q4),fmt(a.oohQ.q1),fmt(a.oohQ.q2),fmt(gy(a.oohQ))],
       ['Total impressions',fmt(a.imprQ.q3),fmt(a.imprQ.q4),fmt(a.imprQ.q1),fmt(a.imprQ.q2),fmt(gy(a.imprQ))]],[1,2,3,4,5])}
-    ${tbl('Engagements, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant year'],[
+    ${tbl('Engagements, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Social engagements',fmt(a.socEngQ.q3),fmt(a.socEngQ.q4),fmt(a.socEngQ.q1),fmt(a.socEngQ.q2),fmt(gy(a.socEngQ))],
       ['Emails opened',fmt(a.emailOpenQ.q3),fmt(a.emailOpenQ.q4),fmt(a.emailOpenQ.q1),fmt(a.emailOpenQ.q2),fmt(gy(a.emailOpenQ))],
       ['Website downloads',fmt(a.webDlQ.q3),fmt(a.webDlQ.q4),fmt(a.webDlQ.q1),fmt(a.webDlQ.q2),fmt(gy(a.webDlQ))],
       ['Website clicks',fmt(a.webClicksQ.q3),fmt(a.webClicksQ.q4),fmt(a.webClicksQ.q1),fmt(a.webClicksQ.q2),fmt(gy(a.webClicksQ))],
       ['Total engagements',fmt(a.engQ.q3),fmt(a.engQ.q4),fmt(a.engQ.q1),fmt(a.engQ.q2),fmt(gy(a.engQ))]],[1,2,3,4,5])}
-    ${tbl('Reach, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant year'],[
+    ${tbl('Reach, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Unique website users (new users)',fmt(a.uniqWebUsersQ.q3),fmt(a.uniqWebUsersQ.q4),fmt(a.uniqWebUsersQ.q1),fmt(a.uniqWebUsersQ.q2),fmt(gy(a.uniqWebUsersQ))],
       ['Unique email sends',fmt(a.uniqEmailQ.q3),fmt(a.uniqEmailQ.q4),fmt(a.uniqEmailQ.q1),fmt(a.uniqEmailQ.q2),fmt(a.uniqEmailGY)],
       ['Social reach and views',fmt(a.socReachQ.q3),fmt(a.socReachQ.q4),fmt(a.socReachQ.q1),fmt(a.socReachQ.q2),fmt(gy(a.socReachQ))],
-      ['Total reach (grant year deduplicated)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)]],[1,2,3,4,5])}
+      ['Total reach (Grant Year 1 deduplicated)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)]],[1,2,3,4,5])}
     ${tbl('Earned media by quarter',['Quarter','Articles','Impressions (potential audience)'],QA.map(q=>[QL[q],fmt(a.earnedArtQ[q]),fmt(a.earnedImprQ[q])]),[1,2])}
-    ${tbl('Awareness metrics as reported to HCA',['Metric','Jan to Jun 2026','Grant year to date'],[
+    ${tbl('Awareness metrics as reported to HCA',['Metric','Jan to Jun 2026','Grant Year 1 total'],[
       ['# Impressions',fmt(HCA.report.impr),fmt(HCA.reportYtd.impr)],
       ['# Engagements',fmt(HCA.report.eng),fmt(HCA.reportYtd.eng)],
-      ['# Reach','Grant year measure',fmt(HCA.reportYtd.reach)],
+      ['# Reach','Grant Year 1 measure',fmt(HCA.reportYtd.reach)],
       ['# Earned media reach',fmt(HCA.report.earned),fmt(HCA.reportYtd.earned)]],[1,2])}
-  </div>`,'Source of truth: the 2025 and 2026 LDA Metrics workbooks, detail tabs only. Definitions are fixed. Impressions = website page views + social impressions + AI SERP impressions + emails delivered + direct mail delivered + out-of-home impressions. Engagements = social engagements + emails opened + website downloads + website clicks. Reach = unique website users + unique email recipients + social reach and views. Quarterly figures use Marketo per-quarter unique recipients; the grant-year figure uses the Marketo-deduplicated period count of 464,902 unique email recipients, per marketing guidance, because adding quarters together would count the same people repeatedly. The quarters therefore do not sum to the grant year, and that is the platform methodology itself. Earned media reach = total earned media impressions. Three caveats carry with these figures. Earned media impressions are potential-audience estimates rather than measured views, and a single syndicated article accounts for roughly a quarter of the grant-year total. Marketing validated 464,902 as the deduplicated unique recipient count for the grant period; total sends exceed uniques due to test and seed sends and Marketo deduplication methodology. The Q4 2025 quarterly unique is held at 5,594 pending a re-pull, because the platform figure of 441,302 predates the removal of the duplicated August 18 send. Q3 2025 social is fully within the grant window; marketing confirmed no posts ran before September 2, 2025. Q3 2025 website remains a full July to September quarter, an immaterial overstatement marketing has assessed as not worth correcting.');
+  </div>`,'Definitions. Impressions = website page views + social impressions + AI SERP impressions + emails delivered + direct mail delivered + out-of-home impressions. Engagements = social engagements + emails opened + website downloads + website clicks. Reach = unique website users + unique email recipients + social reach and views; the Grant Year 1 figure is deduplicated across quarters, so the quarters do not sum to it. Earned media reach = total earned media impressions, a potential-audience estimate (one syndicated article accounts for roughly a quarter of the year total).');
 }
 R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
 R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
@@ -1112,9 +1167,46 @@ R.qi=(k,ch,dt,note)=>{
   note.style.display='block'; note.style.background='#FFFFFF'; note.style.border='1px solid var(--line)'; note.style.color='var(--ink)';
   note.innerHTML=qiControls();
   const C2=QI.clinics, idx = S.clinic==='both'?[0,1]:(S.clinic==='a'?[0]:[1]);
+  if(S.qiTool==='process'){
+    const P=QI.process, both=S.clinic==='both', j=idx[0], pf=(n,d)=>d?Math.round(n/d*100):0;
+    const sc=P.scorecard, scr=sc[2], mod=sc[3], hi=sc[4];
+    const dCol=j===0?2:4, nCol=j===0?3:5;
+    if(both){
+      k.innerHTML=
+        kpi('p','Clinics Reporting','2',null,'June 2026 baseline')+
+        kpi('k','High-risk LDA Prescribing','100%',100,'Both clinics')+
+        kpi('t','Standardized 28-wk Screening',Math.min(pf(scr[3],scr[2]),pf(scr[5],scr[4]))+' to '+Math.max(pf(scr[3],scr[2]),pf(scr[5],scr[4]))+'%',null,'Range across the two clinics')+
+        kpi('p','Taking LDA Without a Rx','0',null,'Reported at both clinics');
+    } else {
+      k.innerHTML=
+        kpi('p','Reporting Period','June 2026',null,C2[j].short+' baseline')+
+        kpi('k','High-risk Prescribed LDA',pf(hi[nCol],hi[dCol])+'%',pf(hi[nCol],hi[dCol]),fmt(hi[nCol])+' of '+fmt(hi[dCol]))+
+        kpi('t','Standardized 28-wk Screening',pf(scr[nCol],scr[dCol])+'%',pf(scr[nCol],scr[dCol]),fmt(scr[nCol])+' of '+fmt(scr[dCol]))+
+        kpi('p','Moderate-risk Prescribed LDA',pf(mod[nCol],mod[dCol])+'%',pf(mod[nCol],mod[dCol]),fmt(mod[nCol])+' of '+fmt(mod[dCol]));
+    }
+    ch.innerHTML=card('qp1','Process measures scorecard','Percent of patients meeting each measure, June 2026',300,true);
+    const shortLbl=['LDA training','1st-visit assessment','28-wk screening','Mod-risk LDA','High-risk LDA'];
+    const aPct=sc.map(r=>pf(r[3],r[2])), bPct=sc.map(r=>pf(r[5],r[4]));
+    if(both) grouped2('qp1',shortLbl,aPct,bPct,'Clinic A','Clinic B',C.purple,C.pink);
+    else vbars('qp1',shortLbl,sc.map(r=>pf(r[nCol],r[dCol])),C.purple,false);
+    const fu=P.followup;
+    const scRows=sc.map(r=>{ const a=fmt(r[3])+' / '+fmt(r[2])+' ('+pf(r[3],r[2])+'%)', b=fmt(r[5])+' / '+fmt(r[4])+' ('+pf(r[5],r[4])+'%)';
+      return both?[r[0],r[1],a,b]:[r[0],r[1], j===0?a:b]; });
+    const fuRows=[['Prescribed LDA with follow-up',fu.A.prescribed,fu.B.prescribed],
+      ['Asked about adherence',fu.A.asked,fu.B.asked],['Reported taking LDA',fu.A.taking,fu.B.taking],
+      ['Taking LDA without a prescription',fu.A.noRx,fu.B.noRx]].map(r=>both?r:[r[0], j===0?r[1]:r[2]]);
+    const tmRows=P.timing.map(r=>both?r:[r[0], j===0?r[1]:r[2]]);
+    dt.innerHTML=details(`<div class="dgrid">
+      ${tbl('Process measures scorecard', both?['Measure','Denominator','Clinic A','Clinic B']:['Measure','Denominator',C2[j].short], scRows, both?[2,3]:[2], {desc:'Numerator / denominator (share meeting the measure).'})}
+      ${tbl('Follow-up and adherence', both?['Measure','Clinic A','Clinic B']:['Measure',C2[j].short], fuRows, both?[1,2]:[1], {desc:'Clinic A reports its 28-week cohort; Clinic B reports all June LDA patients.'})}
+      ${tbl('LDA initiation timing', both?['When LDA was started','Clinic A','Clinic B']:['When LDA was started',C2[j].short], tmRows, both?[1,2]:[1], {desc:'Gestational age at initiation, patient counts.'})}
+      ${tbl('Where the clinics align',['Finding'],P.aligned.map(x=>[x]),[],{max:5})}
+      ${tbl('Where the clinics differ',['Finding'],P.notAligned.map(x=>[x]),[],{max:5})}
+    </div>`,P.note);
+    return;
+  }
   if(S.qiTool!=='pre'){
-    const meta={process:['Process Measures Survey','Quarterly','Screening, risk identification, LDA prescribing, follow-up, and equity measures. Reported as numerator over denominator.'],
-      checklist:['Implementation Checklist','Monthly','A 0 to 4 adoption scale across screening, counseling, prescribing, documentation, and training.'],
+    const meta={checklist:['Implementation Checklist','Monthly','A 0 to 4 adoption scale across screening, counseling, prescribing, documentation, and training.'],
       patient:['Patient Surveys & Interviews','Ongoing','Patient experience and provider surveys, plus patient interviews on preeclampsia and LDA communication.']}[S.qiTool];
     ch.innerHTML=`<div class="card"><h3>${meta[0]}</h3><div class="ch-sub">Cadence: ${meta[1]} &nbsp;|&nbsp; HCA grant (LDA) &nbsp;|&nbsp; Clinic A and Clinic B</div>
       <div style="padding:22px 2px 8px;color:var(--muted);font-size:13.5px;line-height:1.7">
@@ -1152,7 +1244,7 @@ R.qi=(k,ch,dt,note)=>{
       row('Leadership support',P.leadership),
       row('Capacity (next 6 months)',P.capacity)],[])}
     ${tbl('Change-influencing factors',['Factor',...cols],P.factors.map(f=>[f[0],...idx.map(i=>f[i+1])]),[])}
-  </div>`,'Pre-implementation baseline collected June 2026. Two HCA-market clinics, de-identified as Clinic A and Clinic B; individual respondents are not named. Responses and counts only, per the survey report, with no scoring or recommendations. Process Measures (quarterly), Implementation Checklist (monthly), and Patient Surveys and Interviews populate as the first QI cohort reports (Q2 2026 to Q3 2027).');
+  </div>`,'Pre-implementation baseline collected June 2026. Two HCA-market clinics, de-identified as Clinic A and Clinic B; individual respondents are not named. Responses and counts only, per the survey report, with no scoring or recommendations. The Process Measures tab now carries the June 2026 baseline; Implementation Checklist (monthly) and Patient Surveys and Interviews populate as the clinics report (through Q3 2027).');
 };
 
 // ── EXPORT ──
@@ -1199,13 +1291,13 @@ async function exportXLSX(){
   r++;
   // Detail tables
   document.querySelectorAll('#details table').forEach(t=>{
-    const title=t.parentElement.querySelector('.tbl-title');
+    const tc=t.closest('.tblc'); const title=tc?tc.querySelector('.tbl-title'):null;
     section(title?title.textContent.trim():'Detail');
     headRow([...t.querySelectorAll('thead th')].map(th=>th.textContent.trim()));
     t.querySelectorAll('tbody tr').forEach(tr=>dataR([...tr.children].map(c=>c.textContent.trim())));
     r++;
   });
-  ws.mergeCells(`A${r}:D${r}`); put('A'+r,'Generated '+new Date().toLocaleString()+'.  Reporting period: August 2025 to present.',{size:9,italic:true,color:MUT});
+  ws.mergeCells(`A${r}:D${r}`); put('A'+r,'Generated '+new Date().toLocaleString()+'.  Reporting period: Grant Year 1, Aug 2025 to Jun 30, 2026.',{size:9,italic:true,color:MUT});
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -1230,7 +1322,7 @@ function refresh(){
   document.getElementById('quarter').closest('.field').style.display=isQI?'none':'flex';
   document.getElementById('f-market').style.display=(!isQI&&hca&&S.page!=='aware'&&S.page!=='aiserp')?'flex':'none';
   const ml={all:'all Florida and Texas markets',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
-  const qf=S.quarter==='all'?'August 2025 to present':QL[S.quarter];
+  const qf=S.quarter==='all'?'Grant Year 1, Aug 2025 to Jun 2026':QL[S.quarter];
   document.getElementById('pg-sub').textContent = isQI
     ? 'HCA Grant (LDA) - Quality Improvement Evaluation'
     : hca ? (S.page==='aware'?'National LDBB campaign, '+qf:'HCA Grant, '+ml+', '+qf)
