@@ -7,9 +7,14 @@
 <title>Low Dose, Big Benefits Monitoring Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<!-- Usage analytics: GoatCounter (privacy-first, no cookies, no personal data). Replace YOURCODE with your GoatCounter site code. -->
+<!-- Usage analytics: GoatCounter (privacy-first, no cookies, no personal data). Site: samnnorom.goatcounter.com -->
 <script data-goatcounter="https://samnnorom.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<script>function track(p){try{if(window.goatcounter&&window.goatcounter.count){window.goatcounter.count({path:p,title:p,event:true});}}catch(e){}}</script>
+<script>
+// GoatCounter (samnnorom.goatcounter.com). track() logs custom events; trackView() logs SPA
+// section views as distinct paths (e.g. /hca/qi) so per-section usage shows in the Paths report.
+function track(p){try{if(window.goatcounter&&window.goatcounter.count){window.goatcounter.count({path:p,title:p,event:true});}}catch(e){}}
+function trackView(p){try{if(window.goatcounter&&window.goatcounter.count){window.goatcounter.count({path:p,title:'Dashboard '+p});}}catch(e){}}
+</script>
 <style>
   :root{
     --purple:#5B2A86; --purple2:#7040A4; --pink:#BE3A69; --teal:#128577;
@@ -119,13 +124,17 @@
   .row{display:grid;gap:16px;margin-bottom:18px}
   .row.two{grid-template-columns:1fr 1fr}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;
-    box-shadow:var(--shadow-sm);margin-bottom:16px}
+    box-shadow:var(--shadow-sm);margin-bottom:16px;display:flex;flex-direction:column}
   .row .card{margin-bottom:0}
+  .card h3,.card .ch-sub,.card .secband{flex:0 0 auto}
   .secband{margin:10px 2px 12px;padding:0 0 7px 1px;border-bottom:1px solid var(--line);font-size:10.5px;font-weight:800;letter-spacing:1.1px;color:#5B2A86;text-transform:uppercase}
   .card h3{font-size:14px;font-weight:800;margin-bottom:3px;letter-spacing:-.1px}
   .card .ch-sub{font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.4}
-  .wrap{position:relative;height:260px}
+  .wrap{position:relative;height:260px;flex:1 1 auto;min-height:220px}
   .wrap.tall{height:300px}
+  .chart-note{font-size:11.5px;color:var(--muted);line-height:1.5;background:#FAF8FC;border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;margin:-4px 2px 16px}
+  .chart-note b{color:var(--ink);font-weight:700}
   details.det{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;
     box-shadow:var(--shadow-sm);overflow:hidden}
   details.det>summary{list-style:none;cursor:pointer;padding:15px 20px;font-weight:800;font-size:13px;
@@ -516,6 +525,11 @@ const ICON = {
   qi:'M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 0a1 1 0 110 2 1 1 0 010-2zm-2 15l-3.5-3.5 1.41-1.41L10 15.17l4.59-4.58L16 12l-6 6z'
 };
 const QL={q3:'Q3 2025',q4:'Q4 2025',q1:'Q1 2026',q2:'Q2 2026'}, QA=['q3','q4','q1','q2'];
+// Current-filter labels so descriptive text tracks the LDBB/HCA and Quarter selections.
+const tf = () => S.quarter==='all' ? 'Grant Year 1' : QL[S.quarter];       // timeframe
+const tfLong = () => S.quarter==='all' ? 'Grant Year 1 (Aug 2025 to Jun 30, 2026)' : QL[S.quarter];
+const scopeName = () => S.scope==='hca' ? 'HCA Grant' : 'LDBB';
+const mktName = () => S.scope!=='hca' ? 'all markets' : {all:'Florida and Texas',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
 const fmt = n => n==null?'n/a':(typeof n==='number'? n.toLocaleString():n);
 const big = n => n==null?'n/a':(n>=1e9?(n/1e9).toFixed(1).replace(/\.0$/,'')+'B':n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e4?Math.round(n/1e3)+'k':n>=2500?(n/1e3).toFixed(1).replace(/\.0$/,'')+'k':fmt(n));
 const kt = v => v>=1e6?big(v):v>=1000?(v/1e3).toFixed(1).replace(/\.0$/,'')+'k':v; // axis ticks: uniform k-notation from 1,000 up
@@ -828,7 +842,7 @@ R.overview_ldbb=(k,ch,dt)=>{
       {desc:'Learners by state of residence (LMS). Share is of the 552 national completers.'})}
     ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']],null,
       {desc:'WISE pop-up survey on the English LDA pages (N='+fmt(LDBB.cons.surveyN)+').'})}
-  </div>`,'All figures are final for Grant Year 1 (Aug 2025 to Jun 30, 2026): two quarters in 2025 (Q3, Q4) and two in 2026 (Q1, Q2). Awareness and page-view data are complete through Q2 2026.');
+  </div>`,scopeName()+' · '+tf()+'. Grant Year 1 runs Aug 2025 to Jun 30, 2026 (two quarters in 2025, two in 2026). KPIs above follow the Quarter filter; all figures are final.');
 };
 R.overview_hca=(k,ch,dt)=>{
   const mkt=MK();
@@ -913,7 +927,7 @@ R.overview_hca=(k,ch,dt)=>{
       ['Payment schedule','3 payments of $'+fmt(HCA.award.each)],
       ['Payment dates',HCA.award.payments.join(', ')]],null,
       {desc:'Award amount and payment schedule.'})}
-  </div>`,'Individuals Served = materials distributed + consumers educated. Reach is a Grant Year 1 measure.');
+  </div>`,scopeName()+' · '+mktName()+' · '+tf()+'. Individuals Served = materials distributed + consumers educated. Reach is a Grant Year 1 measure.');
 };
 
 R.prof_ldbb=(k,ch,dt)=>{
@@ -931,14 +945,21 @@ R.prof_ldbb=(k,ch,dt)=>{
   prepost('p1',p.knowledge.map(r=>r[0]),p.knowledge.map(r=>r[1]),p.knowledge.map(r=>r[2]));
   prepost('p2',p.attitudes.map(r=>r[0]),p.attitudes.map(r=>r[1]),p.attitudes.map(r=>r[2]));
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Completions by quarter and cohort',['Quarter','Main course','NFS cohort','Total'],QS().map(q=>[QL[q],fmt(p.compMain[q]),fmt(p.compNFS[q]),fmt(p.compMain[q]+p.compNFS[q])]))}
-    ${tbl('Completion summary',['Metric','Value'],[['Completions (Aug 2025+)',fmt(comp)],['Program to date',fmt(p.progToDate)],['Course enrollment (started)',fmt(p.started)],['Completion rate',p.complRate+'%']])}
-    ${tbl('Top states by completers',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']))}
-    ${tbl('Professional role (multi-select)',['Role','%'],p.roles.map(r=>[r[0],r[1]+'%']))}
-    ${tbl('Employment setting (multi-select)',['Setting','%'],p.settings.map(r=>[r[0],r[1]+'%']))}
-    ${tbl('Knowledge gains by question',['Question','Pre','Post'],p.knowledge.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
-    ${tbl('Attitude gains, strongly agree',['Statement','Pre','Post'],p.attitudes.map(r=>[r[0],r[1]+'%',r[2]+'%']))}
-  </div>`,'Completions from LDA and NFS progress reports through 6/25/2026.');
+    ${tbl('Completions by quarter and cohort',['Quarter','Main course','NFS cohort','Total'],QS().map(q=>[QL[q],fmt(p.compMain[q]),fmt(p.compNFS[q]),fmt(p.compMain[q]+p.compNFS[q])]),null,
+      {desc:'Module completions, '+(S.quarter==='all'?'all four quarters':QL[S.quarter])+'.'})}
+    ${tbl('Completion summary',['Metric','Value'],[['Completions (Aug 2025+)',fmt(comp)],['Program to date',fmt(p.progToDate)],['Course enrollment (started)',fmt(p.started)],['Completion rate',p.complRate+'%']],null,
+      {desc:'Enrollment and completion totals.'})}
+    ${tbl('Top states by completers',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
+      {desc:'Learners by state of residence; share of 552.'})}
+    ${tbl('Professional role (multi-select)',['Role','%'],p.roles.map(r=>[r[0],r[1]+'%']),null,
+      {desc:'Learner roles; respondents could pick more than one.'})}
+    ${tbl('Employment setting (multi-select)',['Setting','%'],p.settings.map(r=>[r[0],r[1]+'%']),null,
+      {desc:'Practice settings; respondents could pick more than one.'})}
+    ${tbl('Knowledge gains by question',['Question','Pre','Post'],p.knowledge.map(r=>[r[0],r[1]+'%',r[2]+'%']),null,
+      {desc:'Percent correct, pre-test versus post-test.'})}
+    ${tbl('Attitude gains, strongly agree',['Statement','Pre','Post'],p.attitudes.map(r=>[r[0],r[1]+'%',r[2]+'%']),null,
+      {desc:'Percent who strongly agree, pre versus post.'})}
+  </div>`,scopeName()+' · '+tf()+'. National LDBB professional education; completions from LDA and NFS progress reports through 6/25/2026.');
 };
 R.prof_hca=(k,ch,dt)=>{
   const comp=lmsComp();
@@ -949,20 +970,22 @@ R.prof_hca=(k,ch,dt)=>{
     kpi('k','Learned Something New',sv.learnedNew+'%',sv.learnedNew,'Of FL and TX learners')+
     kpi('t','Intent to Change Practice',sv.intentChange+'%',sv.intentChange,'Of FL and TX learners')+
     kpi('p','Content Valuable',sv.valuable+'%',sv.valuable,'Found the module valuable');
-  ch.innerHTML=`<div class="row two">${card('ph1','Professionals educated by state and quarter','Florida versus Texas, from the LMS',280)}${card('ph2','Split, Florida and Texas','Selected quarters',280)}</div>`;
+  ch.innerHTML=`<div class="row two">${card('ph1','Professionals educated by state and quarter','Florida versus Texas, from the LMS',280)}${card('ph2','Split, Florida and Texas',tf(),280)}</div>`;
   const qs=QS();
   groupedMQ('ph1',qs.map(q=>QL[q]),qs.map(q=>HCA.stateVal.fl[q]),qs.map(q=>HCA.stateVal.tx[q]),'Florida','Texas');
   donut('ph2',[['Florida',fl],['Texas',tx]],[C.purple,C.pink]);
   let roleRows='';
-  if(hasMI()) roleRows+=tbl('Role demographics, Florida (Miami)',['Role','n','%'],HCA.roleDemo.miami.map(r=>[r[0],r[1],r[2]+'%']));
-  if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']));
+  if(hasMI()) roleRows+=tbl('Role demographics, Florida (Miami)',['Role','n','%'],HCA.roleDemo.miami.map(r=>[r[0],r[1],r[2]+'%']),null,{desc:'Learner roles reported in Florida.'});
+  if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']),null,{desc:'Learner roles reported in Texas.'});
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Professionals educated by state and quarter (LMS)',['Quarter','Florida','Texas','Total'],qs.map(q=>[QL[q],fmt(HCA.stateVal.fl[q]),fmt(HCA.stateVal.tx[q]),(HCA.stateVal.fl[q]||0)+(HCA.stateVal.tx[q]||0)]),[1,2,3])}
-    ${tbl('Professionals educated, Grant Year 1',['Scope','Count'],[['Florida',fmt(52)],['Texas',fmt(132)],['Florida and Texas',fmt(184)],['National (LDBB)',fmt(552)]],[1])}
-    ${tbl('Provider education outcomes (FL and TX learners)',['Measure','%'],[['Learned something new',HCA.survey.all.learnedNew+'%'],['Intend to change a practice',HCA.survey.all.intentChange+'%'],['Content was valuable',HCA.survey.all.valuable+'%']])}
-    ${tbl('Clinical QI outcome',['Outcome','Value'],[['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI protocol data':HCA.screenFirstVisit+'%']],[1])}
+    ${tbl('Professionals educated by state and quarter (LMS)',['Quarter','Florida','Texas','Total'],qs.map(q=>[QL[q],fmt(HCA.stateVal.fl[q]),fmt(HCA.stateVal.tx[q]),(HCA.stateVal.fl[q]||0)+(HCA.stateVal.tx[q]||0)]),[1,2,3],
+      {desc:'Learners by state of residence, '+(S.quarter==='all'?'all four quarters':QL[S.quarter])+'.'})}
+    ${tbl('Professionals educated, Grant Year 1',['Scope','Count'],[['Florida',fmt(52)],['Texas',fmt(132)],['Florida and Texas',fmt(184)],['National (LDBB)',fmt(552)]],[1],
+      {desc:'Grant-year totals; FL 52 + TX 132 = 184 of 552 national.'})}
+    ${tbl('Provider education outcomes (FL and TX learners)',['Measure','%'],[['Learned something new',HCA.survey.all.learnedNew+'%'],['Intend to change a practice',HCA.survey.all.intentChange+'%'],['Content was valuable',HCA.survey.all.valuable+'%']],null,
+      {desc:'Post-training survey results.'})}
     ${roleRows}
-  </div>`,'Professionals educated comes from the LMS, counted by learner state of residence over Grant Year 1 (Aug 15 2025 to Jun 30, 2026): Florida 52 + Texas 132 = 184, of a national total of 552. The LMS is the single source for this metric; market activity trackers are not used.');
+  </div>`,scopeName()+' · '+mktName()+' · '+tf()+'. Professionals educated is counted by learner state of residence: Florida 52 + Texas 132 = 184, of a national total of 552. Source: LMS.');
 };
 
 R.cons_ldbb=(k,ch,dt)=>{
@@ -991,7 +1014,7 @@ R.cons_ldbb=(k,ch,dt)=>{
     ${tbl('Page views by topic',['Topic','Views'],c.topics.map(r=>[r[0],fmt(r[1])]))}
     ${tbl('Who visits (multi-select)',['Audience','%'],c.who.map(r=>[r[0],r[1]+'%']))}
     ${tbl('Resource downloads',['Resource','Downloads'],c.dls.map(r=>[r[0],fmt(r[1])]))}
-  </div>`,'WISE pop-up surveys through 6/30/2026. Spanish percentages use small samples (N under 20) and are directional.');
+  </div>`,scopeName()+' · '+tf()+'. WISE pop-up surveys through 6/30/2026. Spanish percentages use small samples (N under 20) and are directional.');
 };
 R.cons_hca=(k,ch,dt)=>{
   const mk=MK();
@@ -1068,7 +1091,7 @@ R.cons_hca=(k,ch,dt)=>{
       {desc:'WISE pop-up survey on the LDA pages.'})}
     ${tbl('Partners and community events by period',['Period','Partners','Community events'],partnersF().map(p=>[p.period,(hasMI()?p.pMI:0)+(hasHOU()?p.pHOU:0),(hasMI()?p.eMI:0)+(hasHOU()?p.eHOU:0)]),null,
       {desc:'New partners and events, by reporting period.'})}
-  </div>`,'Basic-need bags include food and diaper bags. Materials, consumers, bags and kits are counted per market; page views and WISE outcomes are national.');
+  </div>`,scopeName()+' · '+mktName()+' · '+tf()+'. Basic-need bags include food and diaper bags. Materials, consumers, bags and kits are counted per market; page views and WISE outcomes are national.');
 };
 
 function awareView(k,ch,dt){
@@ -1132,7 +1155,7 @@ function awareView(k,ch,dt){
     ['Engagements','Social engagements + emails opened + website downloads + website clicks'],
     ['Reach','Unique website users + unique email recipients + social reach and views'],
     ['Earned media reach','Total earned media impressions (a potential-audience estimate)']
-  ],'Reach is deduplicated across quarters, so the four quarters do not sum to the Grant Year 1 figure.'));
+  ],scopeName()+' &middot; National LDBB campaign &middot; '+tf()+'. Reach is deduplicated across quarters, so the four quarters do not sum to the Grant Year 1 figure.'));
 }
 R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
 R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
@@ -1185,8 +1208,9 @@ R.qi=(k,ch,dt,note)=>{
         kpi('t','Standardized 28-wk Screening',pf(scr[nCol],scr[dCol])+'%',pf(scr[nCol],scr[dCol]),fmt(scr[nCol])+' of '+fmt(scr[dCol]))+
         kpi('p','Moderate-risk Prescribed LDA',pf(mod[nCol],mod[dCol])+'%',pf(mod[nCol],mod[dCol]),fmt(mod[nCol])+' of '+fmt(mod[dCol]));
     }
-    ch.innerHTML=card('qp1','Process measures scorecard','Percent of patients meeting each measure, June 2026',300,true);
-    const shortLbl=['LDA training','1st-visit assessment','28-wk screening','Mod-risk LDA','High-risk LDA'];
+    ch.innerHTML=card('qp1','Process measures scorecard','Share of each eligible group that completed the step, June 2026 (higher is better)',300,true)
+      +`<div class="chart-note">Each bar is the percent of a specific group that met the step. <b>LDA training</b>: staff who completed training. <b>1st-visit assessment</b>: first-visit patients with a documented preeclampsia risk assessment. <b>28-wk screening</b>: patients past 28 weeks with the standardized assessment. <b>Moderate- / High-risk LDA</b>: at-risk patients who received an LDA prescription. Exact numerator and denominator for every bar are in the table below.</div>`;
+    const shortLbl=['LDA training','1st-visit assessment','28-wk screening','Moderate-risk LDA','High-risk LDA'];
     const aPct=sc.map(r=>pf(r[3],r[2])), bPct=sc.map(r=>pf(r[5],r[4]));
     if(both) grouped2('qp1',shortLbl,aPct,bPct,'Clinic A','Clinic B',C.purple,C.pink);
     else vbars('qp1',shortLbl,sc.map(r=>pf(r[nCol],r[dCol])),C.purple,false);
@@ -1198,7 +1222,7 @@ R.qi=(k,ch,dt,note)=>{
       ['Taking LDA without a prescription',fu.A.noRx,fu.B.noRx]].map(r=>both?r:[r[0], j===0?r[1]:r[2]]);
     const tmRows=P.timing.map(r=>both?r:[r[0], j===0?r[1]:r[2]]);
     dt.innerHTML=details(`<div class="dgrid">
-      ${tbl('Process measures scorecard', both?['Measure','Denominator','Clinic A','Clinic B']:['Measure','Denominator',C2[j].short], scRows, both?[2,3]:[2], {desc:'Numerator / denominator (share meeting the measure).'})}
+      ${tbl('Process measures scorecard', both?['Measure','Denominator','Clinic A','Clinic B']:['Measure','Denominator',C2[j].short], scRows, both?[2,3]:[2], {desc:'Each cell is numerator / denominator (share). A higher share means more of the eligible group met the step.'})}
       ${tbl('Follow-up and adherence', both?['Measure','Clinic A','Clinic B']:['Measure',C2[j].short], fuRows, both?[1,2]:[1], {desc:'Clinic A reports its 28-week cohort; Clinic B reports all June LDA patients.'})}
       ${tbl('LDA initiation timing', both?['When LDA was started','Clinic A','Clinic B']:['When LDA was started',C2[j].short], tmRows, both?[1,2]:[1], {desc:'Gestational age at initiation, patient counts.'})}
       ${tbl('Where the clinics align',['Finding'],P.aligned.map(x=>[x]),[],{max:5})}
@@ -1314,7 +1338,7 @@ function buildNav(){
   document.getElementById('nav').innerHTML=Object.keys(PAGES).map(p=>
     `<div class="nav-item${p===S.page?' active':''}" data-pg="${p}">
       <svg class="nav-ic" viewBox="0 0 24 24" fill="currentColor"><path d="${ICON[p]}"/></svg>${PAGES[p].title}</div>`).join('');
-  document.querySelectorAll('.nav-item').forEach(el=>el.onclick=()=>{S.page=el.dataset.pg;if(window.innerWidth<=820)document.body.classList.remove('nav-open');refresh();});
+  document.querySelectorAll('.nav-item').forEach(el=>el.onclick=()=>{S.page=el.dataset.pg;if(window.innerWidth<=820)document.body.classList.remove('nav-open');trackView('/'+S.scope+'/'+S.page);refresh();});
 }
 function toggleNav(){ document.body.classList.toggle('nav-open'); }
 function refresh(){
@@ -1333,7 +1357,7 @@ function refresh(){
     : 'LDBB national campaign, '+qf;
   render();
 }
-document.querySelectorAll('#scope button').forEach(b=>b.onclick=()=>{S.scope=b.dataset.scope; if(b.dataset.scope==='ldbb')S.market='all'; refresh();});
+document.querySelectorAll('#scope button').forEach(b=>b.onclick=()=>{S.scope=b.dataset.scope; if(b.dataset.scope==='ldbb')S.market='all'; trackView('/'+S.scope+'/'+S.page); refresh();});
 document.getElementById('market').onchange=e=>{S.market=e.target.value;refresh();};
 document.getElementById('quarter').onchange=e=>{S.quarter=e.target.value;refresh();};
 buildNav(); refresh();
