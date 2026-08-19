@@ -156,6 +156,15 @@
     padding:8px 14px;cursor:pointer;text-align:left;letter-spacing:.3px;width:100%}
   .tbl-more:hover{background:#FBF9FD}
   .det-note{font-size:11px;color:var(--muted);margin-top:16px;font-style:italic;line-height:1.55;border-top:1px solid var(--line);padding-top:12px}
+  .opdefs{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .opdefs-hd{font-size:11px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+  .opdef{display:grid;grid-template-columns:190px 12px 1fr;gap:0 8px;align-items:baseline;padding:6px 0;font-size:12px;line-height:1.5;border-bottom:1px solid #F4F1F8}
+  .opdef:last-of-type{border-bottom:0}
+  .opdef-t{font-weight:700;color:var(--ink)}
+  .opdef-eq{color:var(--purple);font-weight:800;text-align:center}
+  .opdef-d{color:var(--muted)}
+  .opdefs-foot{font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;margin-top:12px}
+  @media(max-width:680px){.opdef{grid-template-columns:1fr;gap:2px}.opdef-eq{display:none}.opdef-t::after{content:' ='}}
   .backdrop{display:none;position:fixed;inset:0;background:rgba(20,10,35,.45);z-index:44}
   body.nav-open .backdrop{display:block}
   @media(max-width:1080px){.kgrid{grid-template-columns:repeat(2,1fr)}.row.two{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}}
@@ -490,19 +499,9 @@ const QI = {
       'Follow-up and timing use different denominators: Clinic A reports its 28-week cohort; Clinic B reports all 23 June LDA patients.',
       'Training coverage differs by more than double (6% vs 15%), thin at both sites.'
     ],
-    note:'Baseline collected June 2026 from two HCA-market clinics, de-identified as Clinic A and Clinic B. Counts are operational QI figures; small cells (n under 5) are shown for the evaluation and clinic teams and should be suppressed if shared more widely. Denominator interpretation differs between clinics on the follow-up, timing and "without assessment" items; the counts themselves are trustworthy and cross-foot to their stated totals. The next cycle standardizes those denominators and adds entry-time validation.'
+    note:'Baseline collected June 2026 from two HCA-market clinics, de-identified as Clinic A and Clinic B. Counts are operational QI figures; small cells (n under 5) should be suppressed if shared beyond the evaluation and clinic teams. Follow-up and timing use different denominators at each clinic; the counts cross-foot to their stated totals and the next cycle standardizes those denominators.'
   }
 };
-// Postpartum survey (HCA grant, national, consumer-facing). Restricted to the HCA grant window 08/2025 to 06/2026.
-// Only the v2 instrument falls inside the window (104 of 108 responses); the v1 page-outcome instrument (Dec 2024 to Jul 2025) is entirely outside the grant period and is excluded.
-const PP = {
-  total:104, dateRange:'08/2025 to 06/2026', // HCA grant window
-  prep:{ n:62, notAtAll:40, somewhat:50, mostly:8, fully:2 },   // % of respondents
-  audience:[['Pregnant, birthing or postpartum person',64],['Family or support person',13],['Public health professional or student',13],['Community advocate',7],['Health care provider or student',5],['Interested member of public',4]], audienceN:101,
-  reasons:[['Learn about my pregnancy or postpartum stage',61],['Conditions or symptoms I have now',22],['Support a partner, family member or friend',16],['Research for a paper or project',7],['Other',4]], reasonsN:99,
-  video:'insufficient'  // video outcome questions: N=1, not reportable
-};
-
 const S = { page:'overview', scope:'ldbb', market:'all', quarter:'all', qiTool:'pre', clinic:'both', mmetric:'materials' };
 // Brand tokens: the dashboard's original darker purples restored (owner preference 2026-08-03,
 // over the brighter deck purple). Deep pink for Houston, teal reserved for consumer outcomes.
@@ -550,6 +549,12 @@ function kpi(cls,label,val,pctOrNull,cap){
 }
 function card(id,title,sub,h,hero){ return `<div class="card${hero?' hero':''}"><h3>${title}</h3>${sub?`<div class="ch-sub">${sub}</div>`:''}<div class="wrap${h>290?' tall':''}" style="height:${h||260}px"><canvas id="${id}" role="img" aria-label="${title}${sub?', '+sub:''}. Full values in the data tables below."></canvas></div></div>`; }
 function details(inner,note){ return `<details class="det" aria-label="Data tables"><summary>View details<span class="chev">&#9662;</span></summary><div class="det-body">${inner}${note?`<div class="det-note">${note}</div>`:''}</div></details>`; }
+// Operational Definitions block: each variable on its own line as "term = definition".
+function opdefs(items,foot){
+  return `<div class="opdefs"><div class="opdefs-hd">Operational Definitions</div>`
+    + items.map(([t,d])=>`<div class="opdef"><span class="opdef-t">${t}</span><span class="opdef-eq">=</span><span class="opdef-d">${d}</span></div>`).join('')
+    + (foot?`<div class="opdefs-foot">${foot}</div>`:'') + `</div>`;
+}
 let TBLID=0;
 function tblMore(id,btn){
   const el=document.getElementById(id); if(!el) return;
@@ -816,7 +821,7 @@ R.overview_ldbb=(k,ch,dt)=>{
       ['Consumer Education','Learned something new',LDBB.cons.learnedNew+'%'],
       ['Public Awareness','Total impressions',fmt(impr)],
       ['Public Awareness','Engagements',fmt(sumq(LDBB.aware.engQ))]],[2],
-      {desc:'Headline result for each of the three LDBB pillars, Grant Year 1 to date.'})}
+      {desc:'The headline result for each of the three LDBB pillars.'})}
     ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],QA.map(q=>[QL[q],fmt(p.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]),null,
       {desc:'Two quarters in 2025 (Q3, Q4) and two in 2026 (Q1, Q2).'})}
     ${tbl('Top states by professionals educated',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
@@ -885,23 +890,29 @@ R.overview_hca=(k,ch,dt)=>{
       ['Individuals served',fmt(served)+` (${pctf(served,HCA.goalReach)}%)`,fmt(HCA.goalReach)],
       ['Awareness impressions',fmt(awImpr)+` (${pctf(awImpr,HCA.goalAwareImpr)}%)`,fmt(HCA.goalAwareImpr)],
       ['Learners completed module',fmt(comp)+` (${pctf(comp,HCA.goalPartners)}%)`,fmt(HCA.goalPartners)],
-      ['Publications / deliverables',fmt(HCA.publications),'As needed']],[1,2])}
-    ${tbl('Geographic reach',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3])}
+      ['Publications / deliverables',fmt(HCA.publications),'As needed']],[1,2],
+      {desc:'Contract results against each Year 1 goal.'})}
+    ${tbl('Geographic reach',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3],
+      {desc:'Served, partners and affiliates by HCA division.'})}
     ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Jan to Jun 2026','Grant Year 1 total'],[
       ['# Impressions',fmt(rep.impr),fmt(repY.impr)],
       ['# Engagements',fmt(rep.eng),fmt(repY.eng)],
       ['# Reach','Grant Year 1 measure',fmt(repY.reach)],
-      ['# Earned media reach',fmt(rep.earned),fmt(repY.earned)]],[1,2])}
-    ${tbl('Named external partners',['Partner','Region'],pnRows)}
+      ['# Earned media reach',fmt(rep.earned),fmt(repY.earned)]],[1,2],
+      {desc:'The awareness figures as submitted to HCA.'})}
+    ${tbl('Named external partners',['Partner','Region'],pnRows,null,
+      {desc:'All community partners engaged this year, by division.'})}
     ${tbl('Program outcome metrics (served and achieved)',['Outcome','Served','Achieved'],[
       ['Consumer learners, learned something new (WISE pop-up)',fmt(consN),fmt(consAch)+` (${HCA.consLearnedNew}%)`],
       ['Provider learners, learned something new (eLearning)',fmt(comp),fmt(provAch)+` (${HCA.survey.all.learnedNew}%)`],
       ['Individuals provided resources',fmt(kits),fmt(kits)],
-      ['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI':HCA.screenFirstVisit+'%',HCA.screenFirstVisit==null?'Pending QI':'']],[1,2])}
+      ['Pregnant people screened at first prenatal visit',HCA.screenFirstVisit==null?'Pending QI':HCA.screenFirstVisit+'%',HCA.screenFirstVisit==null?'Pending QI':'']],[1,2],
+      {desc:'Reached versus the share achieving each outcome.'})}
     ${tbl('Grant award (Healthier Tomorrow Fund)',['Item','Detail'],[
       ['Total award','$'+fmt(HCA.award.total)],
       ['Payment schedule','3 payments of $'+fmt(HCA.award.each)],
-      ['Payment dates',HCA.award.payments.join(', ')]])}
+      ['Payment dates',HCA.award.payments.join(', ')]],null,
+      {desc:'Award amount and payment schedule.'})}
   </div>`,'Individuals Served = materials distributed + consumers educated. Reach is a Grant Year 1 measure.');
 };
 
@@ -1034,9 +1045,7 @@ R.cons_hca=(k,ch,dt)=>{
           <blockquote>&#8220;Daughter in law. Possible pre-eclampsia.&#8221;</blockquote>
           <p>The information resonates beyond the pregnant person, helping families recognize warning signs and support loved ones with greater confidence.</p></div>
       </div>
-      <div class="voice-note">Composite narratives constructed from verbatim WISE pop-up responses using the narrative inquiry (restorying) approach; quoted words are unedited.</div></div>`+
-    `<div class="secband">Postpartum education survey</div>`+
-    ppCards();
+      <div class="voice-note">Composite narratives constructed from verbatim WISE pop-up responses using the narrative inquiry (restorying) approach; quoted words are unedited.</div></div>`;
   paint(); wireMseg(paint);
   grouped2('cc2',qs.map(q=>QL[q]),
     qs.map(q=>(hasMI()?HCA.materials.miami[q]:0)+(hasHOU()?HCA.materials.houston[q]:0)),
@@ -1044,19 +1053,22 @@ R.cons_hca=(k,ch,dt)=>{
     'Materials','Consumers educated',C.purple,C.teal);
   grouped2('cc3',qs.map(q=>QL[q]),qs.map(q=>HCA.ldaLandQ[q]),qs.map(q=>HCA.preecQ[q]),'LDA landing','Preeclampsia',C.purple,C.pink);
   hbarPctNamed('cc4',[['Learned something new',HCA.consLearnedNew],['Relevant to needs',HCA.consRelevant]],[C.purple,C.teal]);
-  ppDraw();
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Materials and consumers by quarter',['Quarter','Materials','Consumers'],qs.map(q=>[QL[q],
       fmt((hasMI()?HCA.materials.miami[q]:0)+(hasHOU()?HCA.materials.houston[q]:0)),
-      (hasMI()?HCA.consumers.miami[q]:0)+(hasHOU()?HCA.consumers.houston[q]:0)]))}
-    ${tbl('Consumer education page views by quarter',['Quarter','LDA landing','Preeclampsia (Eng)','All website pages'],qs.map(q=>[QL[q],fmt(HCA.ldaLandQ[q]),fmt(HCA.preecQ[q]),fmt(LDBB.aware.webPvQ[q])]))}
+      (hasMI()?HCA.consumers.miami[q]:0)+(hasHOU()?HCA.consumers.houston[q]:0)]),null,
+      {desc:'Materials distributed and consumers educated one-on-one.'})}
+    ${tbl('Consumer education page views by quarter',['Quarter','LDA landing','Preeclampsia (Eng)','All website pages'],qs.map(q=>[QL[q],fmt(HCA.ldaLandQ[q]),fmt(HCA.preecQ[q]),fmt(LDBB.aware.webPvQ[q])]),null,
+      {desc:'English-language page views by quarter.'})}
     ${tbl('Basic-need bags and hypertension kits',['Item','Miami','Houston','Total'],[
-      ['Basic-need bags',hasMI()?bagsBy('miami'):'n/a',hasHOU()?bagsBy('houston'):'n/a',bags],
-      ['Hypertension kits',hasMI()?htnBy('miami'):'n/a',hasHOU()?htnBy('houston'):'n/a',htn]],[1,2,3])}
-    ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',HCA.consLearnedNew+'%'],['Relevant to needs',HCA.consRelevant+'%']])}
-    ${tbl('Partners and community events by period',['Period','Partners','Community events'],partnersF().map(p=>[p.period,(hasMI()?p.pMI:0)+(hasHOU()?p.pHOU:0),(hasMI()?p.eMI:0)+(hasHOU()?p.eHOU:0)]))}
-    ${ppTables()}
-  </div>`,'Basic-need bags include food and diaper bags. Postpartum survey outcomes are national and directional (small sample, '+PP.total+' responses).');
+      ['Basic-need bags',hasMI()?fmt(bagsBy('miami')):'n/a',hasHOU()?fmt(bagsBy('houston')):'n/a',fmt(bags)],
+      ['Hypertension kits',hasMI()?fmt(htnBy('miami')):'n/a',hasHOU()?fmt(htnBy('houston')):'n/a',fmt(htn)]],[1,2,3],
+      {desc:'Resource items provided, by market.'})}
+    ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',HCA.consLearnedNew+'%'],['Relevant to needs',HCA.consRelevant+'%']],null,
+      {desc:'WISE pop-up survey on the LDA pages.'})}
+    ${tbl('Partners and community events by period',['Period','Partners','Community events'],partnersF().map(p=>[p.period,(hasMI()?p.pMI:0)+(hasHOU()?p.pHOU:0),(hasMI()?p.eMI:0)+(hasHOU()?p.eHOU:0)]),null,
+      {desc:'New partners and events, by reporting period.'})}
+  </div>`,'Basic-need bags include food and diaper bags. Materials, consumers, bags and kits are counted per market; page views and WISE outcomes are national.');
 };
 
 function awareView(k,ch,dt){
@@ -1115,14 +1127,19 @@ function awareView(k,ch,dt){
       ['# Engagements',fmt(HCA.report.eng),fmt(HCA.reportYtd.eng)],
       ['# Reach','Grant Year 1 measure',fmt(HCA.reportYtd.reach)],
       ['# Earned media reach',fmt(HCA.report.earned),fmt(HCA.reportYtd.earned)]],[1,2])}
-  </div>`,'Definitions. Impressions = website page views + social impressions + AI SERP impressions + emails delivered + direct mail delivered + out-of-home impressions. Engagements = social engagements + emails opened + website downloads + website clicks. Reach = unique website users + unique email recipients + social reach and views; the Grant Year 1 figure is deduplicated across quarters, so the quarters do not sum to it. Earned media reach = total earned media impressions, a potential-audience estimate (one syndicated article accounts for roughly a quarter of the year total).');
+  </div>`,opdefs([
+    ['Impressions','Website page views + social impressions + AI SERP impressions + emails delivered + direct mail delivered + out-of-home impressions'],
+    ['Engagements','Social engagements + emails opened + website downloads + website clicks'],
+    ['Reach','Unique website users + unique email recipients + social reach and views'],
+    ['Earned media reach','Total earned media impressions (a potential-audience estimate)']
+  ],'Reach is deduplicated across quarters, so the four quarters do not sum to the Grant Year 1 figure.'));
 }
 R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
 R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
   note.innerHTML='Public Awareness is a single national LDBB&#8482; campaign, not split by market.';
   awareView(k,ch,dt); };
 
-// ── AI SEARCH (AI SERP) page: national. Shows the shift from page views to AI-mediated access. ──
+// -- AI SEARCH (AI SERP) page: national. Shows the shift from page views to AI-mediated access. --
 function idxLine(id,labels,series){ // series:[{label,data(raw),color,dash}] indexed to first point = 100
   mk(id,{type:'line',data:{labels,datasets:series.map((s,i)=>{const b=s.data[0]||1;return {label:s.label,data:s.data.map(v=>Math.round(v/b*100)),borderColor:s.color,backgroundColor:'transparent',borderWidth:2.6,borderDash:s.dash?[6,4]:[],tension:.3,pointStyle:SHAPES[i%3],pointRadius:5,pointHoverRadius:7,pointBackgroundColor:s.color,pointBorderColor:'#fff',pointBorderWidth:2};})},
     options:{...BASE,interaction:{mode:'index',intersect:false},
@@ -1132,23 +1149,7 @@ function idxLine(id,labels,series){ // series:[{label,data(raw),color,dash}] ind
 }
 // (AI SERP is rendered inside the Public Awareness page via awareView; idxLine helper above is reused there.)
 
-// ── POSTPARTUM SURVEY block (rendered inside HCA Consumer Education) ──
-// Charts for the postpartum sub-section. Returns the card markup to append; draws charts after insertion.
-function ppCards(){ const p=PP;
-  return `<div class="row two">${card('pp1','Postpartum readiness (national)','How prepared people feel, percent of respondents, N='+p.prep.n,270)}${card('pp2','Who responded (postpartum survey)','Share of respondents, N='+p.audienceN,270)}</div>`;
-}
-function ppDraw(){ const p=PP;
-  vbars('pp1',['Not at all','Somewhat','Mostly','Fully'],[p.prep.notAtAll,p.prep.somewhat,p.prep.mostly,p.prep.fully],C.purple,false);
-  donut('pp2',p.audience,PAL);
-}
-function ppTables(){ const p=PP;
-  return `${tbl('Postpartum readiness (N='+p.prep.n+')',['Response','%'],[['Not prepared at all',p.prep.notAtAll+'%'],['Somewhat prepared',p.prep.somewhat+'%'],['Mostly prepared',p.prep.mostly+'%'],['Fully prepared',p.prep.fully+'%']])}
-    ${tbl('Who responded to the postpartum survey (N='+p.audienceN+')',['Audience','%'],p.audience.map(r=>[r[0],r[1]+'%']))}
-    ${tbl('Reasons for visiting the postpartum page (N='+p.reasonsN+')',['Reason','%'],p.reasons.map(r=>[r[0],r[1]+'%']))}
-    ${tbl('Postpartum video-based outcomes',['Measure','Status'],[['Recognition, ease, relevance, learning after video','Insufficient data (N=1)']])}`;
-}
-
-// ── QI EVALUATION (HCA grant / LDA only) ──
+// -- QI EVALUATION (HCA grant / LDA only) --
 function setQITool(t){ S.qiTool=t; render(); }
 function setClinic(c){ S.clinic=c; render(); }
 function qiPill(active,label,fn,val){
@@ -1232,8 +1233,9 @@ R.qi=(k,ch,dt,note)=>{
     ${tbl('Respondent and clinic',['Field',...cols],[
       row('Respondent role',C2.map(c=>c.role)),
       row('Market',C2.map(c=>c.market)),
-      row('Baseline collected',C2.map(c=>c.date))],[])}
-    ${tbl('Baseline responses (question by question)',['Question',...cols],[
+      row('Baseline collected',C2.map(c=>c.date))],[],
+      {desc:'Who completed the readiness survey at each clinic.'})}
+    ${tbl('Baseline readiness responses',['Question',...cols],[
       row('Prenatal patients per year',P.volume),
       row('Preeclampsia screening integration',P.screeningIntegration),
       row('Screening consistency',P.screeningConsistency),
@@ -1242,12 +1244,14 @@ R.qi=(k,ch,dt,note)=>{
       row('Prior QI initiative',P.priorQI),
       row('Prior QI outcome',P.priorQIoutcome),
       row('Leadership support',P.leadership),
-      row('Capacity (next 6 months)',P.capacity)],[])}
-    ${tbl('Change-influencing factors',['Factor',...cols],P.factors.map(f=>[f[0],...idx.map(i=>f[i+1])]),[])}
-  </div>`,'Pre-implementation baseline collected June 2026. Two HCA-market clinics, de-identified as Clinic A and Clinic B; individual respondents are not named. Responses and counts only, per the survey report, with no scoring or recommendations. The Process Measures tab now carries the June 2026 baseline; Implementation Checklist (monthly) and Patient Surveys and Interviews populate as the clinics report (through Q3 2027).');
+      row('Capacity (next 6 months)',P.capacity)],[],
+      {desc:'Each clinic\'s answer to the readiness questions, as reported.'})}
+    ${tbl('Change-influencing factors',['Factor',...cols],P.factors.map(f=>[f[0],...idx.map(i=>f[i+1])]),[],
+      {desc:'Whether each factor helped or hindered workflow change.'})}
+  </div>`,'Baseline collected June 2026 from two HCA-market clinics, de-identified as Clinic A and Clinic B. Responses as reported, with no scoring. Process Measures now carries the June 2026 baseline; Implementation Checklist and Patient Surveys populate as the clinics report.');
 };
 
-// ── EXPORT ──
+// -- EXPORT --
 function exportPDF(){
   track('export-pdf');
   const d=document.querySelector('#details details'); const was=d?d.open:null; if(d)d.open=true;
@@ -1305,7 +1309,7 @@ async function exportXLSX(){
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
 
-// ── WIRING ──
+// -- WIRING --
 function buildNav(){
   document.getElementById('nav').innerHTML=Object.keys(PAGES).map(p=>
     `<div class="nav-item${p===S.page?' active':''}" data-pg="${p}">
