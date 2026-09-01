@@ -104,6 +104,24 @@ function trackView(p){try{if(window.goatcounter&&window.goatcounter.count){windo
     border:1px solid var(--line);border-radius:11px;padding:0 34px 0 14px;font-size:13px;font-weight:600;
     color:var(--ink);cursor:pointer;min-width:150px}
   select:focus{outline:2px solid var(--purple2);outline-offset:0}
+  /* Multi-select Quarter control */
+  .qsel{position:relative;min-width:170px}
+  .qsel-btn{width:100%;height:42px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--card)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6675' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 12px center;
+    border:1px solid var(--line);border-radius:11px;padding:0 34px 0 14px;font-size:13px;font-weight:600;
+    color:var(--ink);cursor:pointer;text-align:left}
+  .qsel-btn:focus{outline:2px solid var(--purple2);outline-offset:0}
+  .qsel-btn > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qsel-menu{position:absolute;top:46px;right:0;left:auto;min-width:210px;z-index:40;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 12px 30px rgba(50,30,80,.18)}
+  .qsel-opt{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;
+    font-weight:600;color:var(--ink);cursor:pointer;user-select:none}
+  .qsel-opt:hover{background:#F3EEFA}
+  .qsel-opt input{width:16px;height:16px;accent-color:var(--purple);cursor:pointer}
+  .qsel-all{font-weight:700}
+  .qsel-div{height:1px;background:var(--line);margin:4px 6px}
+  .qsel-hint{font-size:11px;color:var(--muted);padding:6px 10px 4px;line-height:1.4}
   .content{padding:24px 30px 48px;overflow-y:auto}
   .scope-note{display:none;background:#F3EEFA;border:1px solid #E3D6F4;color:var(--purple);
     border-radius:12px;padding:14px 18px;font-size:13px;font-weight:600;margin-bottom:20px}
@@ -324,14 +342,21 @@ window.MOD_LOGO64_W='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAACjCAYAA
           <option value="houston">Texas (Houston)</option>
         </select>
       </div>
-      <div class="field"><label>Quarter</label>
-        <select id="quarter">
-          <option value="all">All Quarters</option>
-          <option value="q3">Q3 2025</option>
-          <option value="q4">Q4 2025</option>
-          <option value="q1">Q1 2026</option>
-          <option value="q2">Q2 2026</option>
-        </select>
+      <div class="field" id="f-quarter"><label>Quarter</label>
+        <div class="qsel" id="qsel">
+          <button type="button" class="qsel-btn" id="qselBtn" aria-haspopup="true" aria-expanded="false">
+            <span id="qselLabel">All quarters</span>
+          </button>
+          <div class="qsel-menu" id="qselMenu" hidden role="group" aria-label="Choose one or more quarters">
+            <label class="qsel-opt qsel-all"><input type="checkbox" id="qall"> All quarters</label>
+            <div class="qsel-div"></div>
+            <label class="qsel-opt"><input type="checkbox" class="qbox" value="q3"> Q3 2025</label>
+            <label class="qsel-opt"><input type="checkbox" class="qbox" value="q4"> Q4 2025</label>
+            <label class="qsel-opt"><input type="checkbox" class="qbox" value="q1"> Q1 2026</label>
+            <label class="qsel-opt"><input type="checkbox" class="qbox" value="q2"> Q2 2026</label>
+            <div class="qsel-hint">Tip: check two or three quarters to combine them.</div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -380,8 +405,8 @@ const LDBB = {
     // FINAL 2026-07-18 per marketing (Danielle): quarterly Reach uses Marketo per-quarter unique
     // recipients; the grant year is the Marketo-DEDUPLICATED period figure (464,902 email uniques),
     // not the sum of quarters, because the same people are reached in multiple quarters.
-    reachQ:{q3:483328,q4:62970,q1:892960,q2:1007372},
-    reachGY:1600292,
+    reachQ:{q3:null,q4:null,q1:599394.5,q2:665003.5},   // AUTHORITATIVE Q1/Q2 2026 (Rich). Q3/Q4 2025 pending until provided. Q1+Q2 = 1,264,398.
+    reachGY:null,   // Grant-Year reach pending Q3/Q4 2025; KPI/table use the sum of available quarters.
     uniqEmailQ:{q3:437261,q4:5594,q1:409791,q2:458594}, // Marketo per-quarter unique recipients (marketing,
                                                         // 2026-07-18). Q4 held at the 5,594 floor: marketing's
                                                         // 441,302 predates their Aug 18 duplicate fix and
@@ -538,7 +563,7 @@ const QI = {
     note:'Baseline collected June 2026 from two HCA-market clinics, de-identified as Clinic A and Clinic B. Counts are operational QI figures; small cells (n under 5) should be suppressed if shared beyond the evaluation and clinic teams. Follow-up and timing use different denominators at each clinic; the counts cross-foot to their stated totals and the next cycle standardizes those denominators.'
   }
 };
-const S = { page:'overview', scope:'ldbb', market:'all', quarter:'all', qiTool:'pre', clinic:'both', mmetric:'materials' };
+const S = { page:'overview', scope:'ldbb', market:'all', quarters:['q3','q4','q1','q2'], qiTool:'pre', clinic:'both', mmetric:'materials' };
 // Brand tokens: the dashboard's original darker purples restored (owner preference 2026-08-03,
 // over the brighter deck purple). Deep pink for Houston, teal reserved for consumer outcomes.
 const C = { purple:'#7040A4', pink:'#BE3A69', teal:'#128577', purpleLt:'#CDC1EC' };
@@ -553,8 +578,17 @@ const ICON = {
 };
 const QL={q3:'Q3 2025',q4:'Q4 2025',q1:'Q1 2026',q2:'Q2 2026'}, QA=['q3','q4','q1','q2'];
 // Current-filter labels so descriptive text tracks the LDBB/HCA and Quarter selections.
-const tf = () => S.quarter==='all' ? 'Grant Year 1' : QL[S.quarter];       // timeframe
-const tfLong = () => S.quarter==='all' ? 'Grant Year 1 (Aug 2025 to Jun 30, 2026)' : QL[S.quarter];
+// Quarter selection is a SET (multi-select). QS() returns the chosen quarters in grant order.
+const isAllQ = () => QA.every(q=>S.quarters.includes(q));   // all four selected
+const oneQ = () => S.quarters.length===1 ? QA.filter(q=>S.quarters.includes(q))[0] : null; // the single quarter, or null
+const qJoin = () => QA.filter(q=>S.quarters.includes(q)).map(q=>QL[q]).join(' + ');
+const tf = () => isAllQ() ? 'Grant Year 1' : qJoin();       // timeframe (prose)
+const tfLong = () => isAllQ() ? 'Grant Year 1 (Aug 2025 to Jun 30, 2026)' : qJoin();
+const qSummary = () => { const s=QA.filter(q=>S.quarters.includes(q));
+  if(s.length===QA.length) return 'All quarters';
+  if(s.length===1) return QL[s[0]];
+  if(s.length===3) return '3 quarters';
+  return s.map(q=>QL[q]).join(' + '); };                    // compact label for the control
 const scopeName = () => S.scope==='hca' ? 'HCA Grant' : 'LDBB';
 const mktName = () => S.scope!=='hca' ? 'all markets' : {all:'Florida and Texas',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
 const fmt = n => n==null?'n/a':(typeof n==='number'? n.toLocaleString():n);
@@ -562,7 +596,9 @@ const big = n => n==null?'n/a':(n>=1e9?(n/1e9).toFixed(1).replace(/\.0$/,'')+'B'
 const kt = v => v>=1e6?big(v):v>=1000?(v/1e3).toFixed(1).replace(/\.0$/,'')+'k':v; // axis ticks: uniform k-notation from 1,000 up
 const charts = {};
 function mk(id,cfg){ if(charts[id]){charts[id].destroy();} const el=document.getElementById(id); if(el) charts[id]=new Chart(el,cfg); }
-const QS = () => S.quarter==='all'?QA.slice():[S.quarter];
+const QS = () => { const s=QA.filter(q=>S.quarters.includes(q)); return s.length?s:QA.slice(); };   // selected quarters, in grant order; falls back to all if somehow empty
+const qIdx = () => QS().map(q=>QA.indexOf(q));   // indices (0..3) of selected quarters, in grant order
+const qPick = arr => qIdx().map(i=>arr[i]);      // slice a QA-aligned 4-element array to the selected quarters
 const sumq = o => QS().reduce((s,q)=>s+(o[q]||0),0);
 const anyQ = o => QS().some(q=>o[q]!=null);
 const sumNA = o => anyQ(o)?sumq(o):null;   // null (=> "Pending") when no data in the selected quarter
@@ -671,28 +707,35 @@ function monthSeg(){ return `<div class="mseg" id="mseg">`+MMETRICS.map(m=>
 function monthStats(){
   const key=S.mmetric, gy=MON.gyEnd;
   const mi=MON.miami[key], ho=MON.houston[key];
-  const sum=(a,f,t)=>a.slice(f,t).reduce((x,y)=>x+y,0);
-  const tot=(hasMI()?sum(mi,0,gy):0)+(hasHOU()?sum(ho,0,gy):0);
-  const jj=(hasMI()?sum(mi,5,gy):0)+(hasHOU()?sum(ho,5,gy):0);
-  const post=(hasMI()?mi[gy]:0)+(hasHOU()?ho[gy]:0);
-  const peakIdx=MON.labels.map((_,i)=>i<gy?((hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0)):-1)
-                 .reduce((b,v,i,arr)=>v>arr[b]?i:b,0);
-  return `<div class="mstat">
-    <div>Grant Year 1 total<b>${fmt(tot)}</b></div>
-    <div>Aug to Dec 2025<b>${fmt(tot-jj)}</b></div>
-    <div>Jan to Jun 2026<b>${fmt(jj)}</b></div>
-    <div>Busiest month<b>${MON.labels[peakIdx]} ${peakIdx<5?'2025':'2026'}</b></div>
-    <div>Jul 2026, post-period<b>${fmt(post)}</b></div></div>`;
+  const val=i=>(hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0);
+  if(isAllQ()){
+    const sum=(f,t)=>{let x=0;for(let i=f;i<t;i++)x+=val(i);return x;};
+    const tot=sum(0,gy), jj=sum(5,gy), post=val(gy);
+    const peakIdx=MON.labels.map((_,i)=>i<gy?val(i):-1).reduce((b,v,i,arr)=>v>arr[b]?i:b,0);
+    return `<div class="mstat">
+      <div>Grant Year 1 total<b>${fmt(tot)}</b></div>
+      <div>Aug to Dec 2025<b>${fmt(tot-jj)}</b></div>
+      <div>Jan to Jun 2026<b>${fmt(jj)}</b></div>
+      <div>Busiest month<b>${MON.labels[peakIdx]} ${peakIdx<5?'2025':'2026'}</b></div>
+      <div>Jul 2026, post-period<b>${fmt(post)}</b></div></div>`;
+  }
+  const months=selMonths(), tot=months.reduce((x,i)=>x+val(i),0);
+  const pk=months.reduce((b,i)=>val(i)>val(b)?i:b,months[0]);
+  let tiles=`<div>${tf()} total<b>${fmt(tot)}</b></div>`;
+  if(QS().length>1) QS().forEach(q=>{ tiles+=`<div>${QL[q]}<b>${fmt((hasMI()?mqSum('miami',key,q):0)+(hasHOU()?mqSum('houston',key,q):0))}</b></div>`; });
+  tiles+=`<div>Busiest month<b>${MON.labels[pk]} ${pk<5?'2025':'2026'}</b></div>`;
+  return `<div class="mstat">${tiles}</div>`;
 }
 // Quarterly sums of the monthly tracker series. Jul 2026 is post-period and is excluded from
 // the charts and every total; it appears only in the monthly detail table, marked post-period.
 const MQIX={q3:[0,2],q4:[2,5],q1:[5,8],q2:[8,11]};
 const mqSum=(mkt,key,q)=>MON[mkt][key].slice(MQIX[q][0],MQIX[q][1]).reduce((a,b)=>a+b,0);
+const selMonths=()=>{const idx=[];QS().forEach(q=>{for(let i=MQIX[q][0];i<MQIX[q][1];i++)idx.push(i);});return idx;}; // month indices within the selected quarters (Jul post-period always excluded)
 function drawQuarterlyMetric(id){
-  const key=S.mmetric, ds=[];
-  if(hasMI())ds.push({label:'Miami',data:QA.map(q=>mqSum('miami',key,q)),backgroundColor:C.purple,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
-  if(hasHOU())ds.push({label:'Houston',data:QA.map(q=>mqSum('houston',key,q)),backgroundColor:C.pink,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
-  mk(id,{type:'bar',data:{labels:QA.map(q=>QL[q]),datasets:ds},options:{...BASE,
+  const key=S.mmetric, ds=[], qs=QS();
+  if(hasMI())ds.push({label:'Miami',data:qs.map(q=>mqSum('miami',key,q)),backgroundColor:C.purple,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
+  if(hasHOU())ds.push({label:'Houston',data:qs.map(q=>mqSum('houston',key,q)),backgroundColor:C.pink,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
+  mk(id,{type:'bar',data:{labels:qs.map(q=>QL[q]),datasets:ds},options:{...BASE,
     plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,usePointStyle:true,pointStyle:'rectRounded',font:{size:11},padding:10}},
       tooltip:{mode:'index',intersect:false,callbacks:{
         label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y),
@@ -730,12 +773,22 @@ function wireMseg(redraw){
 // bands the months by quarter. Jul 2026 is post-period: muted and excluded from every total.
 const servedM = m => MON[m].materials.map((v,i)=>v+MON[m].consumers[i]);
 function servedStats(){
-  const post=MON.gyEnd, mi=servedM('miami'), ho=servedM('houston');
+  const mi=servedM('miami'), ho=servedM('houston');
+  const val=i=>(hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0);
+  if(!isAllQ()){
+    const months=selMonths(), tot=months.reduce((x,i)=>x+val(i),0);
+    const pk=months.reduce((b,i)=>val(i)>val(b)?i:b,months[0]);
+    let tiles=`<div>${tf()} total<b>${fmt(tot)}</b></div>`;
+    if(QS().length>1) QS().forEach(q=>{ tiles+=`<div>${QL[q]}<b>${fmt((hasMI()?servedQ('miami',q):0)+(hasHOU()?servedQ('houston',q):0))}</b></div>`; });
+    tiles+=`<div>Busiest month<b>${MON.labels[pk]} ${pk<5?'2025':'2026'}</b></div>`;
+    return `<div class="mstat">${tiles}</div>`;
+  }
+  const post=MON.gyEnd;
   const s=(a,f,t)=>a.slice(f,t).reduce((x,y)=>x+y,0);
   const tot=(hasMI()?s(mi,0,post):0)+(hasHOU()?s(ho,0,post):0);
   const jj =(hasMI()?s(mi,5,post):0)+(hasHOU()?s(ho,5,post):0);
   const jul=(hasMI()?mi[post]:0)+(hasHOU()?ho[post]:0);
-  const pk=MON.labels.map((_,i)=>i<post?((hasMI()?mi[i]:0)+(hasHOU()?ho[i]:0)):-1)
+  const pk=MON.labels.map((_,i)=>i<post?val(i):-1)
             .reduce((b,v,i,a)=>v>a[b]?i:b,0);
   return `<div class="mstat">
     <div>Grant Year 1 total<b>${fmt(tot)}</b></div>
@@ -745,10 +798,10 @@ function servedStats(){
     <div>Jul 2026, post-period<b>${fmt(jul)}</b></div></div>`;
 }
 function drawServedQuarterly(id){
-  const ds=[];
-  if(hasMI())ds.push({label:'Miami',data:QA.map(q=>servedQ('miami',q)),backgroundColor:C.purple,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
-  if(hasHOU())ds.push({label:'Houston',data:QA.map(q=>servedQ('houston',q)),backgroundColor:C.pink,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
-  mk(id,{type:'bar',data:{labels:QA.map(q=>QL[q]),datasets:ds},options:{...BASE,
+  const ds=[], qs=QS();
+  if(hasMI())ds.push({label:'Miami',data:qs.map(q=>servedQ('miami',q)),backgroundColor:C.purple,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
+  if(hasHOU())ds.push({label:'Houston',data:qs.map(q=>servedQ('houston',q)),backgroundColor:C.pink,borderRadius:5,maxBarThickness:46,categoryPercentage:.68,barPercentage:.86});
+  mk(id,{type:'bar',data:{labels:qs.map(q=>QL[q]),datasets:ds},options:{...BASE,
     plugins:{legend:{position:'top',align:'end',labels:{boxWidth:9,usePointStyle:true,pointStyle:'rectRounded',font:{size:11},padding:10}},
       tooltip:{mode:'index',intersect:false,callbacks:{
         label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y),
@@ -797,15 +850,11 @@ function donut(id,pairs,colors){
     options:{...BASE,cutout:'58%',plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:11}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.parsed)}`}}}}});
 }
 function areaLine(id,labels,series){
-  // Highlight the selected quarter's point when a single quarter is filtered (trend charts always show all quarters for context).
-  const hi = S.quarter==='all' ? -1 : QA.indexOf(S.quarter);
-  const prad = hi<0 ? 5 : labels.map((_,idx)=> idx===hi?8.5:3);
-  const phov = hi<0 ? 7 : labels.map((_,idx)=> idx===hi?10:5);
+  // Charts show only the selected quarters (labels/data are pre-filtered by the caller via QS()).
   mk(id,{type:'line',data:{labels,datasets:series.map((s,i)=>({label:s.label,data:s.data,borderColor:s.color,backgroundColor:s.fill,
     fill:true,tension:.38,borderWidth:2.8,borderDash:i?[6,4]:[],pointStyle:SHAPES[i%3],
-    pointRadius:prad,pointHoverRadius:phov,
-    pointBackgroundColor: hi<0 ? s.color : labels.map((_,idx)=> idx===hi ? s.color : '#fff'),
-    pointBorderColor: hi<0 ? '#fff' : labels.map((_,idx)=> idx===hi ? '#fff' : s.color),
+    pointRadius:5,pointHoverRadius:7,
+    pointBackgroundColor:s.color,pointBorderColor:'#fff',
     pointBorderWidth:2}))},
     options:{...BASE,interaction:{mode:'index',intersect:false},
       plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true,font:{size:11.5}}},
@@ -841,16 +890,16 @@ const R = {};
 R.overview_ldbb=(k,ch,dt)=>{
   const p=LDBB.prof, comp=sumq(p.compQ), pv=sumq(LDBB.cons.pvQ), impr=sumq(LDBB.aware.imprQ);
   k.innerHTML=
-    kpi('p','Campaign Impressions',big(impr),Math.min(100,pctf(impr,LDBB.aware.goalImpr)),`${pctf(impr,LDBB.aware.goalImpr)}% of the ${big(LDBB.aware.goalImpr)} goal`)+
+    kpi('p','Campaign Impressions',big(impr),isAllQ()?Math.min(100,pctf(impr,LDBB.aware.goalImpr)):null,isAllQ()?`${pctf(impr,LDBB.aware.goalImpr)}% of the ${big(LDBB.aware.goalImpr)} goal`:'Impressions, '+tf())+
     kpi('k','Professionals Educated',fmt(comp),null,`Completers Aug 2025+ | ${fmt(p.progToDate)} program to date`)+
     kpi('t','Intent to Change Practice',p.intentChange+'%',p.intentChange,'Of learners, goal of 100%')+
     kpi('p','Consumer Page Views',big(pv),null,'English-language LDA pages');
   ch.innerHTML=
-    card('o1','Campaign momentum','Impressions and engagements by quarter'+(S.quarter==='all'?'':' | '+QL[S.quarter]+' highlighted'),300,true)+
-    `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+(S.quarter==='all'?'Grant Year 1':QL[S.quarter]),270)}</div>`;
-  areaLine('o1',QA.map(q=>QL[q]),[
-    {label:'Impressions',data:QA.map(q=>LDBB.aware.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
-    {label:'Engagements',data:QA.map(q=>LDBB.aware.engQ[q]??null),color:C.pink,fill:'rgba(190,58,105,.12)'}]);
+    card('o1','Campaign momentum','Impressions and engagements by quarter'+(isAllQ()?'':' | '+tf()),300,true)+
+    `<div class="row two">${card('o2','Education outcomes (national)','Percent of learners reporting each outcome',270)}${card('o3','Awareness reach by channel','Share of impressions, '+tf(),270)}</div>`;
+  areaLine('o1',QS().map(q=>QL[q]),[
+    {label:'Impressions',data:QS().map(q=>LDBB.aware.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
+    {label:'Engagements',data:QS().map(q=>LDBB.aware.engQ[q]??null),color:C.pink,fill:'rgba(190,58,105,.12)'}]);
   hbarPctNamed('o2',[['Learned something new',p.learnedNew],['Content valuable',p.valuable],['Intent to change practice',p.intentChange]],[C.purple,C.pink,C.teal]);
   const agg=[0,0,0,0,0,0]; QS().forEach(q=>{ if(LDBB.aware.chanQ[q]) LDBB.aware.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('o3',agg);
   dt.innerHTML=details(`<div class="dgrid">
@@ -883,10 +932,11 @@ R.overview_hca=(k,ch,dt)=>{
   const awImpr=sumq(HCA.awImprQ);   // respects the quarter selector; governed source
   const provAch=Math.round(comp*HCA.survey.all.learnedNew/100);
   const consN=LDBB.cons.surveyN, consAch=Math.round(consN*HCA.consLearnedNew/100);
+  const sg=isAllQ();   // goal rings and percentages only make sense against the full-year target
   k.innerHTML=
-    kpi('p','Individuals Served',fmt(served),Math.min(100,pctf(served,HCA.goalReach)),`${pctf(served,HCA.goalReach)}% of the ${fmt(HCA.goalReach)} contract goal`)+
-    kpi('k','Awareness Impressions',big(awImpr),Math.min(100,pctf(awImpr,HCA.goalAwareImpr)),`${pctf(awImpr,HCA.goalAwareImpr)}% of the ${big(HCA.goalAwareImpr)} goal`)+
-    kpi('t','Professionals Educated',fmt(comp),Math.min(100,pctf(comp,HCA.goalPartners)),`${pctf(comp,HCA.goalPartners)}% of the ${HCA.goalPartners} goal`)+
+    kpi('p','Individuals Served',fmt(served),sg?Math.min(100,pctf(served,HCA.goalReach)):null,sg?`${pctf(served,HCA.goalReach)}% of the ${fmt(HCA.goalReach)} contract goal`:'Materials + consumers, '+tf())+
+    kpi('k','Awareness Impressions',big(awImpr),sg?Math.min(100,pctf(awImpr,HCA.goalAwareImpr)):null,sg?`${pctf(awImpr,HCA.goalAwareImpr)}% of the ${big(HCA.goalAwareImpr)} goal`:'Impressions, '+tf())+
+    kpi('t','Professionals Educated',fmt(comp),sg?Math.min(100,pctf(comp,HCA.goalPartners)):null,sg?`${pctf(comp,HCA.goalPartners)}% of the ${HCA.goalPartners} goal`:'Completers, '+tf())+
     kpi('p','Partner Organizations',fmt(part),null,`${fmt(ev)} community events, ${aff} lead affiliate${aff===1?'':'s'}`);
   const region=(m,label,color)=>{
     const sv=servedBy(m), pct=served?Math.round(sv/served*100):0;
@@ -896,9 +946,15 @@ R.overview_hca=(k,ch,dt)=>{
   };
   const goalRow=(label,result,goal,fmtR)=>{
     const pct=Math.round(result/goal*100), tick=Math.max(4,Math.min(96,Math.round(goal/result*100)));
+    if(isAllQ()){
+      return `<li><div class="rl-top"><span>${label}</span><b>${fmtR}</b></div>
+        <div class="rl-bar rl-goal"><i style="width:100%;background:${C.purple}"></i><em style="left:${tick}%"></em></div>
+        <div class="rl-cap"><span>Goal: ${fmt(goal)}</span><span>${pct}% of goal</span></div></li>`;
+    }
+    // Filtered: no goal-line mark and no percent (goals are annual). Bar shows this period against the annual goal.
     return `<li><div class="rl-top"><span>${label}</span><b>${fmtR}</b></div>
-      <div class="rl-bar rl-goal"><i style="width:100%;background:${C.purple}"></i><em style="left:${tick}%"></em></div>
-      <div class="rl-cap"><span>Goal: ${fmt(goal)}</span><span>${pct}% of goal</span></div></li>`;
+      <div class="rl-bar"><i style="width:${Math.max(2,Math.min(100,pct))}%;background:${C.purple}"></i></div>
+      <div class="rl-cap"><span>Annual goal: ${fmt(goal)}</span><span>${tf()}</span></div></li>`;
   };
   const goals=goalRow('Individuals served',served,HCA.goalReach,fmt(served))
     +goalRow('Awareness impressions',awImpr,HCA.goalAwareImpr,big(awImpr))
@@ -910,14 +966,14 @@ R.overview_hca=(k,ch,dt)=>{
       <div class="rl-bar">${hasMI()?`<i style="width:${Math.round(servedBy('miami')/served*100)}%;background:${C.purple}"></i>`:''}${hasHOU()?`<i style="width:${Math.round(servedBy('houston')/served*100)}%;background:${C.pink}"></i>`:''}</div>
       <div class="rl-cap"><span>${part} partners</span><span>${aff} HCA affiliates</span></div></li>`;
   ch.innerHTML=
-    `<div class="secband">Grant Year 1: Aug 15, 2025 to Jun 30, 2026</div>`+
+    `<div class="secband">${isAllQ()?'Grant Year 1: Aug 15, 2025 to Jun 30, 2026':'Filtered view: '+tf()}</div>`+
     `<div class="card hero"><h3>Individuals served by quarter</h3>
        <div class="ch-sub">Materials distributed plus consumers educated one-on-one</div>
        <div id="ostats">${servedStats()}</div>
        <div class="wrap tall" style="height:295px"><canvas id="h1" role="img" aria-label="Individuals served by quarter and market. Monthly detail in the table below."></canvas></div>
        ${monthDetail('h1det',i=>servedM('miami')[i],i=>servedM('houston')[i])}</div>`+
-    `<div class="row two"><div class="card"><h3>Year 1 goals, delivered</h3><div class="ch-sub">Every contract goal met and exceeded. The white mark on each bar is the goal line.</div><ul class="rlist">${goals}</ul></div>
-      <div class="card"><h3>Geographic reach</h3><div class="ch-sub">Grant Year 1 total, by HCA division</div><ul class="rlist">${rlist}</ul></div></div>`;
+    `<div class="row two"><div class="card"><h3>Year 1 goals, delivered</h3><div class="ch-sub">${isAllQ()?'Every contract goal met and exceeded. The white mark on each bar is the goal line.':tf()+' progress toward the annual goals. Percentages are hidden because goals are full-year targets.'}</div><ul class="rlist">${goals}</ul></div>
+      <div class="card"><h3>Geographic reach</h3><div class="ch-sub">${tf()} total, by HCA division</div><ul class="rlist">${rlist}</ul></div></div>`;
   drawServedQuarterly('h1');
   const geo=[];
   if(hasMI()) geo.push([`${HCA.regions.miami} (Miami, FL)`,fmt(servedBy('miami')),partBy('miami'),HCA.affiliates.miami]);
@@ -927,12 +983,12 @@ R.overview_hca=(k,ch,dt)=>{
   if(hasMI()) HCA.partnerNames.miami.forEach(n=>pnRows.push([n,`${HCA.regions.miami} (Miami, FL)`]));
   if(hasHOU()) HCA.partnerNames.houston.forEach(n=>pnRows.push([n,`${HCA.regions.houston} (Houston, TX)`]));
   dt.innerHTML=details(`<div class="dgrid">
-    ${tbl('Grant scorecard versus Year 1 goals',['Metric','Result','Goal'],[
-      ['Individuals served',fmt(served)+` (${pctf(served,HCA.goalReach)}%)`,fmt(HCA.goalReach)],
-      ['Awareness impressions',fmt(awImpr)+` (${pctf(awImpr,HCA.goalAwareImpr)}%)`,fmt(HCA.goalAwareImpr)],
-      ['Learners completed module',fmt(comp)+` (${pctf(comp,HCA.goalPartners)}%)`,fmt(HCA.goalPartners)],
+    ${tbl('Grant scorecard versus Year 1 goals',['Metric',sg?'Result':tf()+' result','Goal (annual)'],[
+      ['Individuals served',sg?fmt(served)+` (${pctf(served,HCA.goalReach)}%)`:fmt(served),fmt(HCA.goalReach)],
+      ['Awareness impressions',sg?fmt(awImpr)+` (${pctf(awImpr,HCA.goalAwareImpr)}%)`:fmt(awImpr),fmt(HCA.goalAwareImpr)],
+      ['Learners completed module',sg?fmt(comp)+` (${pctf(comp,HCA.goalPartners)}%)`:fmt(comp),fmt(HCA.goalPartners)],
       ['Publications / deliverables',fmt(HCA.publications),'As needed']],[1,2],
-      {desc:'Contract results against each Year 1 goal.'})}
+      {desc:sg?'Contract results against each Year 1 goal.':tf()+' results against each annual goal. Percentages are omitted because goals are full-year targets.'})}
     ${tbl('Geographic reach',['Region','Individuals Served','External Partners','Local Affiliates'],geo,[1,2,3],
       {desc:'Served, partners and affiliates by HCA division.'})}
     ${tbl('Awareness campaign metrics (reported to HCA)',['Metric','Jan to Jun 2026','Grant Year 1 total'],[
@@ -973,7 +1029,7 @@ R.prof_ldbb=(k,ch,dt)=>{
   prepost('p2',p.attitudes.map(r=>r[0]),p.attitudes.map(r=>r[1]),p.attitudes.map(r=>r[2]));
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Completions by quarter and cohort',['Quarter','Main course','NFS cohort','Total'],QS().map(q=>[QL[q],fmt(p.compMain[q]),fmt(p.compNFS[q]),fmt(p.compMain[q]+p.compNFS[q])]),null,
-      {desc:'Module completions, '+(S.quarter==='all'?'all four quarters':QL[S.quarter])+'.'})}
+      {desc:'Module completions, '+(isAllQ()?'all four quarters':tf())+'.'})}
     ${tbl('Completion summary',['Metric','Value'],[['Completions (Aug 2025+)',fmt(comp)],['Program to date',fmt(p.progToDate)],['Course enrollment (started)',fmt(p.started)],['Completion rate',p.complRate+'%']],null,
       {desc:'Enrollment and completion totals.'})}
     ${tbl('Top states by completers',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
@@ -1006,7 +1062,7 @@ R.prof_hca=(k,ch,dt)=>{
   if(hasHOU()) roleRows+=tbl('Role demographics, Texas (Houston)',['Role','n','%'],HCA.roleDemo.houston.map(r=>[r[0],r[1],r[2]+'%']),null,{desc:'Learner roles reported in Texas.'});
   dt.innerHTML=details(`<div class="dgrid">
     ${tbl('Professionals educated by state and quarter (LMS)',['Quarter','Florida','Texas','Total'],qs.map(q=>[QL[q],fmt(HCA.stateVal.fl[q]),fmt(HCA.stateVal.tx[q]),(HCA.stateVal.fl[q]||0)+(HCA.stateVal.tx[q]||0)]),[1,2,3],
-      {desc:'Learners by state of residence, '+(S.quarter==='all'?'all four quarters':QL[S.quarter])+'.'})}
+      {desc:'Learners by state of residence, '+(isAllQ()?'all four quarters':tf())+'.'})}
     ${tbl('Professionals educated, Grant Year 1',['Scope','Count'],[['Florida',fmt(52)],['Texas',fmt(132)],['Florida and Texas',fmt(184)],['National (LDBB)',fmt(552)]],[1],
       {desc:'Grant-year totals; FL 52 + TX 132 = 184 of 552 national.'})}
     ${tbl('Provider education outcomes (FL and TX learners)',['Measure','%'],[['Learned something new',HCA.survey.all.learnedNew+'%'],['Intend to change a practice',HCA.survey.all.intentChange+'%'],['Content was valuable',HCA.survey.all.valuable+'%']],null,
@@ -1017,15 +1073,16 @@ R.prof_hca=(k,ch,dt)=>{
 
 R.cons_ldbb=(k,ch,dt)=>{
   const c=LDBB.cons, qs=QS();
-  // WISE outcomes: react to a single-quarter selection when quarterly data exists; otherwise show pooled YTD.
-  const wq = S.quarter!=='all' && c.wiseEN[S.quarter] ? c.wiseEN[S.quarter] : null;
+  // WISE outcomes: react only when EXACTLY ONE quarter is selected (percentages are not summable across a set); otherwise show pooled YTD.
+  const oq = oneQ();
+  const wq = oq && c.wiseEN[oq] ? c.wiseEN[oq] : null;
   const wLn = wq? wq.ln : c.learnedNew, wEa = wq? wq.ea : c.easy, wRe = wq? wq.re : c.relevant, wN = wq? wq.n : c.surveyN;
-  const wsub = wq ? QL[S.quarter]+' | N='+fmt(wN) : 'Grant Year 1 | pooled';
+  const wsub = wq ? QL[oq]+' | N='+fmt(wN) : 'Pooled, all quarters';
   k.innerHTML=
     kpi('p','Page Views',big(sumq(c.pvQ)),null,`Plus ${fmt(sumq(c.spQ))} Spanish-language`)+
     kpi('k','Resource Downloads',big(sumq(c.dlQ)),null,'Risk checklist most downloaded')+
-    kpi('t','Learned Something New',wLn+'%',wLn,`Of ${fmt(wN)} responses${wq?' ('+QL[S.quarter]+')':''}`)+
-    kpi('p','Relevant to Needs',wRe+'%',wRe,`Survey respondents${wq?' ('+QL[S.quarter]+')':', goal of 100%'}`);
+    kpi('t','Learned Something New',wLn+'%',wLn,`Of ${fmt(wN)} responses${wq?' ('+QL[oq]+')':''}`)+
+    kpi('p','Relevant to Needs',wRe+'%',wRe,`Survey respondents${wq?' ('+QL[oq]+')':', goal of 100%'}`);
   ch.innerHTML=`<div class="row two">${card('c1','Page views, English vs Spanish','Consumer education pages by quarter',280)}${card('c2','Page views by topic','Share of total views',280)}</div>`+
     `<div class="row two">${card('c3','WISE learned-something-new trend','English vs Spanish, by quarter',260)}${card('c4','WISE pop-up outcomes (English)','Percent of respondents who agreed | '+wsub,260)}</div>`;
   grouped2('c1',qs.map(q=>QL[q]),qs.map(q=>c.pvQ[q]),qs.map(q=>c.spQ[q]),'English','Spanish',C.purple,C.teal);
@@ -1082,7 +1139,7 @@ R.cons_hca=(k,ch,dt)=>{
       `<div class="wrap tall" style="height:295px"><canvas id="cc1" role="img" aria-label="Market delivery by quarter, Miami and Houston. Monthly detail in the table below."></canvas></div>
       <div id="mmdet"></div></div>`+
     `<div class="row two">${card('cc2','Market delivery by quarter','Materials and consumers educated, both markets',352)}
-      <div class="card"><h3>Community delivery, Grant Year 1</h3><div class="ch-sub">Grant Year 1 totals, split by reporting period</div>${dkey}<ul class="rlist">${dlist}</ul></div></div>`+
+      <div class="card"><h3>Community delivery</h3><div class="ch-sub">${tf()} totals, split by reporting period</div>${dkey}<ul class="rlist">${dlist}</ul></div></div>`+
     `<div class="row two">${card('cc3','Consumer page views by quarter','LDA landing and preeclampsia pages (English)',252)}${card('cc4','WISE pop-up survey outcomes','Percent of respondents who agreed',252)}</div>`+
     `<div class="card"><h3>In their own words</h3><div class="ch-sub">Qualitative findings from the WISE pop-up survey</div>
       <div class="voices">
@@ -1124,23 +1181,30 @@ R.cons_hca=(k,ch,dt)=>{
 function awareView(k,ch,dt){
   const a=LDBB.aware, qs=QS();
   const impr=sumNA(a.imprQ), eng=sumNA(a.engQ);
-  const allQ = S.quarter==='all';
+  const allQ = isAllQ(), oq = oneQ();
   const earned=sumNA(a.earnedImprQ), arts=sumq(a.earnedArtQ);
   const goalPct = impr==null?null:Math.min(100,pctf(impr,a.goalImpr));
+  // Reach: authoritative per-quarter figures (Rich). Q3/Q4 2025 pending, so the KPI sums the SELECTED quarters that have data and reads Pending when none do.
+  const reach = sumNA(a.reachQ);
+  const reachSub = reach==null ? 'Q3 and Q4 2025 pending'
+    : allQ ? 'Unique people reached, Q1 and Q2 2026 (Q3 and Q4 2025 pending)'
+    : oq ? 'Unique people reached in '+QL[oq]
+    : 'Unique people reached, '+tf();
   k.innerHTML=
     kpi('p','Total Impressions',impr==null?'Pending':big(impr),goalPct,`${goalPct==null?'':pctf(impr,a.goalImpr)+'% of the '+big(a.goalImpr)+' goal'}`)+
     kpi('k','Earned Media Reach',earned==null?'Pending':big(earned),null,`Potential audience | ${fmt(arts)} articles`)+
-    kpi('t','Reach',big(allQ?a.reachGY:a.reachQ[S.quarter]),null,allQ?'Unique people, deduplicated across Grant Year 1':'Unique people reached in '+QL[S.quarter])+
+    kpi('t','Reach',reach==null?'Pending':big(reach),null,reachSub)+
     kpi('p','Engagements',eng==null?'Pending':big(eng),null,'Social, email opens, downloads, clicks');
-  const qlbl = S.quarter==='all'?'Grant Year 1':QL[S.quarter];
-  ch.innerHTML=`<div class="row two">${card('a1','Impressions and engagements over time','By quarter. Click a legend item to toggle a series.'+(S.quarter==='all'?'':' | '+QL[S.quarter]+' highlighted'),300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`
+  const qlbl = tf();
+  const idxBase = QL[QS()[0]];
+  ch.innerHTML=`<div class="row two">${card('a1','Impressions and engagements over time','By quarter. Click a legend item to toggle a series.'+(isAllQ()?'':' | '+tf()),300)}${card('a2','Channel breakdown of impressions, '+qlbl,'Use the Quarter selector to change the timeframe',300)}</div>`
     +card('ais1','AI search (SERP) impressions by quarter','Estimated AI search impressions, HCA grant period; the shift from page views to AI answers',300,true)
-    +`<div class="row two">${card('ais2','AI SERP versus LDA content page views','Indexed to Q3 2025 = 100',290)}${card('ais3','AI SERP versus preeclampsia page','Indexed to Q3 2025 = 100',290)}</div>`;
-  areaLine('a1',QA.map(q=>QL[q]),[
-    {label:'Impressions',data:QA.map(q=>a.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
-    {label:'Engagements',data:QA.map(q=>a.engQ[q]??null),color:C.teal,fill:'rgba(18,133,119,.13)'}]);
+    +`<div class="row two">${card('ais2','AI SERP versus LDA content page views','Indexed to '+idxBase+' = 100',290)}${card('ais3','AI SERP versus preeclampsia page','Indexed to '+idxBase+' = 100',290)}</div>`;
+  areaLine('a1',QS().map(q=>QL[q]),[
+    {label:'Impressions',data:QS().map(q=>a.imprQ[q]??null),color:C.purple,fill:'rgba(112,64,164,.14)'},
+    {label:'Engagements',data:QS().map(q=>a.engQ[q]??null),color:C.teal,fill:'rgba(18,133,119,.13)'}]);
   const agg=[0,0,0,0,0,0]; qs.forEach(q=>{ if(a.chanQ[q]) a.chanQ[q].forEach((v,i)=>agg[i]+=v); }); donutCh('a2',agg);
-  const _ais=[2626756,3866162,3882855,5487533], _cpv=[39563,57651,28801,18252], _ppv=[20234,19873,17144,11061], _ql=QA.map(q=>QL[q]);
+  const _ais=qPick([2626756,3866162,3882855,5487533]), _cpv=qPick([39563,57651,28801,18252]), _ppv=qPick([20234,19873,17144,11061]), _ql=QS().map(q=>QL[q]);
   areaLine('ais1',_ql,[{label:'AI SERP impressions',data:_ais,color:C.teal,fill:'rgba(18,133,119,.13)'}]);
   idxLine('ais2',_ql,[{label:'AI SERP',data:_ais,color:C.teal},{label:'LDA content page views',data:_cpv,color:'#E0218A',dash:true}]);
   idxLine('ais3',_ql,[{label:'AI SERP',data:_ais,color:C.teal},{label:'Preeclampsia page views',data:_ppv,color:'#F5A623',dash:true}]);
@@ -1149,9 +1213,9 @@ function awareView(k,ch,dt){
     ${tbl('The four awareness metrics by quarter',['Metric','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Impressions',fmt(a.imprQ.q3),fmt(a.imprQ.q4),fmt(a.imprQ.q1),fmt(a.imprQ.q2),fmt(gy(a.imprQ))],
       ['Engagements',fmt(a.engQ.q3),fmt(a.engQ.q4),fmt(a.engQ.q1),fmt(a.engQ.q2),fmt(gy(a.engQ))],
-      ['Reach (deduplicated, not a sum)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)],
+      ['Reach (Q1/Q2 2026 authoritative; Q3/Q4 pending)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(gy(a.reachQ))],
       ['Earned media reach',fmt(a.earnedImprQ.q3),fmt(a.earnedImprQ.q4),fmt(a.earnedImprQ.q1),fmt(a.earnedImprQ.q2),fmt(gy(a.earnedImprQ))]],[1,2,3,4,5],
-      {wide:true,desc:'Grant Year 1 = Aug 2025 to Jun 30, 2026. Reach is deduplicated across quarters, so quarters do not sum to the Grant Year 1 figure.'})}
+      {wide:true,desc:'Grant Year 1 = Aug 2025 to Jun 30, 2026. Reach for Q1 and Q2 2026 is authoritative; Q3 and Q4 2025 are pending, so the Grant Year 1 column is the sum of the quarters reported so far.'})}
     ${tbl('Impressions, by component',['Component','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Grant Year 1'],[
       ['Website page views',fmt(a.webPvQ.q3),fmt(a.webPvQ.q4),fmt(a.webPvQ.q1),fmt(a.webPvQ.q2),fmt(gy(a.webPvQ))],
       ['Social impressions',fmt(a.socImprQ.q3),fmt(a.socImprQ.q4),fmt(a.socImprQ.q1),fmt(a.socImprQ.q2),fmt(gy(a.socImprQ))],
@@ -1170,7 +1234,7 @@ function awareView(k,ch,dt){
       ['Unique website users (new users)',fmt(a.uniqWebUsersQ.q3),fmt(a.uniqWebUsersQ.q4),fmt(a.uniqWebUsersQ.q1),fmt(a.uniqWebUsersQ.q2),fmt(gy(a.uniqWebUsersQ))],
       ['Unique email sends',fmt(a.uniqEmailQ.q3),fmt(a.uniqEmailQ.q4),fmt(a.uniqEmailQ.q1),fmt(a.uniqEmailQ.q2),fmt(a.uniqEmailGY)],
       ['Social reach and views',fmt(a.socReachQ.q3),fmt(a.socReachQ.q4),fmt(a.socReachQ.q1),fmt(a.socReachQ.q2),fmt(gy(a.socReachQ))],
-      ['Total reach (Grant Year 1 deduplicated)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(a.reachGY)]],[1,2,3,4,5])}
+      ['Total reach (Q1/Q2 2026; Q3/Q4 pending)',fmt(a.reachQ.q3),fmt(a.reachQ.q4),fmt(a.reachQ.q1),fmt(a.reachQ.q2),fmt(gy(a.reachQ))]],[1,2,3,4,5])}
     ${tbl('Earned media by quarter',['Quarter','Articles','Impressions (potential audience)'],QA.map(q=>[QL[q],fmt(a.earnedArtQ[q]),fmt(a.earnedImprQ[q])]),[1,2])}
     ${tbl('Awareness metrics as reported to HCA',['Metric','Jan to Jun 2026','Grant Year 1 total'],[
       ['# Impressions',fmt(HCA.report.impr),fmt(HCA.reportYtd.impr)],
@@ -1182,7 +1246,7 @@ function awareView(k,ch,dt){
     ['Engagements','Social engagements + emails opened + website downloads + website clicks'],
     ['Reach','Unique website users + unique email recipients + social reach and views'],
     ['Earned media reach','Total earned media impressions (a potential-audience estimate)']
-  ],scopeName()+' &middot; National LDBB campaign &middot; '+tf()+'. Reach is deduplicated across quarters, so the four quarters do not sum to the Grant Year 1 figure.'));
+  ],scopeName()+' &middot; National LDBB campaign &middot; '+tf()+'. Reach for Q1 and Q2 2026 is authoritative; Q3 and Q4 2025 are pending.'));
 }
 R.aware_ldbb=(k,ch,dt)=>awareView(k,ch,dt);
 R.aware_hca=(k,ch,dt,note)=>{ note.style.display='block';
@@ -1352,7 +1416,7 @@ async function exportXLSX(){
     t.querySelectorAll('tbody tr').forEach(tr=>dataR([...tr.children].map(c=>c.textContent.trim())));
     r++;
   });
-  ws.mergeCells(`A${r}:D${r}`); put('A'+r,'Generated '+new Date().toLocaleString()+'.  Reporting period: Grant Year 1, Aug 2025 to Jun 30, 2026.',{size:9,italic:true,color:MUT});
+  ws.mergeCells(`A${r}:D${r}`); put('A'+r,'Generated '+new Date().toLocaleString()+'.  Reporting period: '+(isAllQ()?'Grant Year 1, Aug 2025 to Jun 30, 2026':tf())+'.',{size:9,italic:true,color:MUT});
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -1374,10 +1438,10 @@ function refresh(){
   document.getElementById('pg-title').textContent=PAGES[S.page].title;
   const hca=S.scope==='hca', isQI=S.page==='qi';
   document.getElementById('scope').closest('.field').style.display=isQI?'none':'flex';
-  document.getElementById('quarter').closest('.field').style.display=isQI?'none':'flex';
+  document.getElementById('f-quarter').style.display=isQI?'none':'flex';
   document.getElementById('f-market').style.display=(!isQI&&hca&&S.page!=='aware'&&S.page!=='aiserp')?'flex':'none';
   const ml={all:'all Florida and Texas markets',miami:'Florida (Miami)',houston:'Texas (Houston)'}[S.market];
-  const qf=S.quarter==='all'?'Grant Year 1, Aug 2025 to Jun 2026':QL[S.quarter];
+  const qf=isAllQ()?'Grant Year 1, Aug 2025 to Jun 2026':tf();
   document.getElementById('pg-sub').textContent = isQI
     ? 'HCA Grant (LDA) - Quality Improvement Evaluation'
     : hca ? (S.page==='aware'?'National LDBB campaign, '+qf:'HCA Grant, '+ml+', '+qf)
@@ -1386,7 +1450,26 @@ function refresh(){
 }
 document.querySelectorAll('#scope button').forEach(b=>b.onclick=()=>{S.scope=b.dataset.scope; if(b.dataset.scope==='ldbb')S.market='all'; trackView('/'+S.scope+'/'+S.page); refresh();});
 document.getElementById('market').onchange=e=>{S.market=e.target.value;refresh();};
-document.getElementById('quarter').onchange=e=>{S.quarter=e.target.value;refresh();};
+// Quarter multi-select: check any combination of quarters; "All quarters" selects the full year.
+const qselBtn=document.getElementById('qselBtn'), qselMenu=document.getElementById('qselMenu');
+function qSyncUI(){
+  const sel=QS();
+  document.querySelectorAll('.qbox').forEach(cb=>{cb.checked=sel.includes(cb.value);});
+  document.getElementById('qall').checked=isAllQ();
+  document.getElementById('qselLabel').textContent=qSummary();
+}
+function qApply(){ if(QS().length===0) S.quarters=QA.slice(); qSyncUI(); refresh(); }
+document.getElementById('qall').addEventListener('change',()=>{ S.quarters=QA.slice(); qApply(); });
+document.querySelectorAll('.qbox').forEach(cb=>cb.addEventListener('change',()=>{
+  const set=new Set(S.quarters);
+  cb.checked?set.add(cb.value):set.delete(cb.value);
+  S.quarters=QA.filter(q=>set.has(q));
+  qApply();
+}));
+qselBtn.addEventListener('click',e=>{ e.stopPropagation();
+  const willOpen=qselMenu.hidden; qselMenu.hidden=!willOpen; qselBtn.setAttribute('aria-expanded',String(willOpen)); });
+document.addEventListener('click',e=>{ if(!document.getElementById('qsel').contains(e.target)){ qselMenu.hidden=true; qselBtn.setAttribute('aria-expanded','false'); } });
+qSyncUI();
 buildNav(); refresh();
 </script>
 </body>
