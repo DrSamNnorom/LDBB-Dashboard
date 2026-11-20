@@ -1,4 +1,4 @@
-<!-- LDBB / HCA Monitoring Dashboard - 2026-11-19 revision (provisional). Grant Year 1 and year-1-goal framing removed throughout: no goal rings or "% of goal", no "Year 1 goals, delivered" panel; the dashboard now works only in the five quarters Q3 2025, Q4 2025, Q1 2026, Q2 2026, Q3 2026, with "All Quarters" meaning all five. Q3 2026 filled for LDA page views (English 15,314, Spanish 1,291) and HCA awareness impressions/engagements/earned; reach and unique-email for Q3 2026 held pending (governed Marketo basis differs from the metrics doc). Market professionals and consumers folded into the LDBB Professional Education and Consumer Education pages on the LDA Campaign project scope. -->
+<!-- LDBB / HCA Monitoring Dashboard - 2026-11-20 revision. Grant Year 1 and year-1-goal framing removed throughout: no goal rings or "% of goal", no "Year 1 goals, delivered" panel; the dashboard now works only in the five quarters Q3 2025, Q4 2025, Q1 2026, Q2 2026, Q3 2026, with "All Quarters" meaning all five. Q3 2026 filled for LDA page views (English 15,314, Spanish 1,291) and HCA awareness impressions/engagements/earned; Q3 2026 reach settled at 562,867, matching the confirmed metrics doc. Market professionals and consumers folded into the LDBB Professional Education and Consumer Education pages on the LDA Campaign project scope. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1063,7 +1063,7 @@ R.overview_ldbb=(k,ch,dt)=>{
     ${tbl('Campaign metrics by quarter',['Quarter','Completions','Page views','Impressions'],['q3','q4','q1','q2','c3'].map(q=>[QL[q],fmt(p.compQ[q]),fmt(LDBB.cons.pvQ[q]),fmt(LDBB.aware.imprQ[q])]),null,
       {desc:'Five quarters: Q3 and Q4 2025, then Q1, Q2 and Q3 2026.'})}
     ${tbl('Top states by professionals educated',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
-      {desc:'Learners by state of residence (LMS). Share is of the 552 national completers.'})}
+      {desc:'Learners by state of residence (LMS). Percent is the share of all learners.'})}
     ${tbl('Consumer survey quality (WISE pop-up)',['Measure','%'],[['Learned something new',LDBB.cons.learnedNew+'%'],['Easy to understand',LDBB.cons.easy+'%'],['Relevant to needs',LDBB.cons.relevant+'%']],null,
       {desc:'WISE pop-up survey on the English LDA pages (N='+fmt(LDBB.cons.surveyN)+').'})}
   </div>`,scopeName()+', '+tf()+'. Quarters run Q3 2025 to Q3 2026. KPIs above follow the Quarter filter.');
@@ -1176,7 +1176,7 @@ R.prof_ldbb=(k,ch,dt)=>{
     ${tbl('Completion summary',['Metric','Value'],[['Completions (Aug 2025+)',fmt(comp)],['Program to date',fmt(p.progToDate)],['Course enrollment (started)',fmt(p.started)],['Completion rate',p.complRate+'%']],null,
       {desc:'Enrollment and completion totals.'})}
     ${tbl('Top states by completers',['State','n','%'],p.states.map(r=>[r[0],r[1],r[2]+'%']),null,
-      {desc:'Learners by state of residence; share of 552.'})}
+      {desc:'Learners by state of residence; percent is the share of all learners.'})}
     ${tbl('Professional role (multi-select)',['Role','%'],p.roles.map(r=>[r[0],r[1]+'%']),null,
       {desc:'Learner roles; respondents could pick more than one.'})}
     ${tbl('Employment setting (multi-select)',['Setting','%'],p.settings.map(r=>[r[0],r[1]+'%']),null,
